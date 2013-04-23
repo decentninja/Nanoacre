@@ -2,7 +2,14 @@ body {
 }
 
 .content {
-	background-color: #1D1D1D;
 	width: 720px;
 	margin: auto;
+}
+
+.content > h1 {
+	text-align: center;
+}
+
+.canvas {
+	background-color: #1D1D1D;
 }
