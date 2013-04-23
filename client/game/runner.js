@@ -17,7 +17,7 @@ function Runner(socket, canvas_selector, config) {
 	this.ui = new Ui(canvas_context, config, samplemap)
 	this.game = new Game(samplemap, config, this.ui)
 
-	this.lasttime = Date.now()
+	this.lasttime = performance.now()
 }
 
 // requestAnim shim layer by Paul Irish
@@ -33,7 +33,7 @@ window.requestAnimFrame = (function() {
 })();
 
 Runner.prototype.loop = function() {
-	var newtime = Date.now()
+	var newtime = performance.now()
 	var deltatime = newtime - this.lasttime
 	this.lasttime = newtime
 	this.game.step(deltatime)
