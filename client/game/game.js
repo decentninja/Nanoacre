@@ -5,7 +5,7 @@ function Game(map, config, ui) {
 }
 
 Game.prototype.step = function(deltatime) {
-		var samplestate = {	// sample state
+	var samplestate = {	// sample state
 		bullets: [
 			{
 				id: 0,

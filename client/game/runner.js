@@ -37,7 +37,10 @@ Runner.prototype.loop = function() {
 	var deltatime = newtime - this.lasttime
 	this.lasttime = newtime
 	this.game.step(deltatime)
-	requestAnimFrame(this.loop)
+	var that = this
+	requestAnimFrame(function() {
+		that.loop.apply(that)
+	})
 }
 
 var runner = new Runner(null, ".canvas", {
