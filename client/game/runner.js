@@ -20,27 +20,12 @@ function Runner(socket, canvas_selector, config) {
 	this.lasttime = performance.now()
 }
 
-// requestAnim shim layer by Paul Irish
-window.requestAnimFrame = (function() {
-  return  window.requestAnimationFrame       || 
-          window.webkitRequestAnimationFrame || 
-          window.mozRequestAnimationFrame    || 
-          window.oRequestAnimationFrame      || 
-          window.msRequestAnimationFrame     || 
-          function(callback, element) {
-            window.setTimeout(callback, 1000 / 60);
-          };
-})();
-
 Runner.prototype.loop = function() {
 	var newtime = performance.now()
 	var deltatime = newtime - this.lasttime
 	this.lasttime = newtime
 	this.game.step(deltatime)
-	var that = this
-	requestAnimFrame(function() {
-		that.loop.apply(that)
-	})
+	requestAnimationFrame(this.loop.bind(this))
 }
 
 var runner = new Runner(null, ".canvas", {
