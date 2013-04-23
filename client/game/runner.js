@@ -8,9 +8,9 @@ function Runner(socket, canvas_selector, config) {
 	var samplemap = {
 		name: "Valley of Darkness",
 		parts: [
+			[1, 1, 1],
 			[0, 0, 0],
-			[0, 1, 0],
-			[0, 0, 0],
+			[1, 1, 1],
 		],
 	}
 
