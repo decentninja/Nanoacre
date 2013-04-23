@@ -10,7 +10,7 @@ Game.prototype.step = function(deltatime) {
 			{
 				id: 0,
 				owning_player: 0,
-				current_position: {
+				position: {
 					x: 100,
 					y: 100,
 				},
@@ -24,11 +24,11 @@ Game.prototype.step = function(deltatime) {
 			{
 				id: 0,
 				owning_player: 0,
-				current_position: {
+				position: {
 					x: 100,
 					y: 100
 				},
-				target_position: {
+				target: {
 					x: 100,
 					y: 100
 				},
