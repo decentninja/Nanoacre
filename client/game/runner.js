@@ -30,11 +30,16 @@ Runner.prototype.loop = function() {
 
 var runner = new Runner(null, ".canvas", {
 	colors: {
-		team: "#7EA885",
+		teams: [
+			"#7EA885",
+			"#ECC57C",
+			"#E1856C",
+			"#872237",
+			"#A1A1AA"
+		],
 		background: "#1D1D1D",
 		bullet: "#C82257",
 		selected: "#208BB5",
-		enemy: "#ECC57C"
 	},
 	fullscreen: true,
 })

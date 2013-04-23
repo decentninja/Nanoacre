@@ -11,12 +11,12 @@ Game.prototype.step = function(deltatime) {
 				id: 0,
 				owning_player: 0,
 				position: {
-					x: 100,
-					y: 100,
+					x: 110,
+					y: 110,
 				},
 				direction: {
-					x: 1,
-					y: 1,
+					x: 0.707106781,
+					y: 0.707106781,
 				}
 			},
 		],
@@ -27,6 +27,19 @@ Game.prototype.step = function(deltatime) {
 				position: {
 					x: 100,
 					y: 100
+				},
+				target: {
+					x: 100,
+					y: 100
+				},
+				shooting_cooldown: 0
+			},
+			{
+				id: 1,
+				owning_player: 1,
+				position: {
+					x: 200,
+					y: 200
 				},
 				target: {
 					x: 100,
