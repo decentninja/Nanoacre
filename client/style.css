@@ -2,7 +2,7 @@ body {
 }
 
 .content {
-	width: 720px;
+	width: 1000px;
 	margin: auto;
 }
 
@@ -11,5 +11,13 @@ body {
 }
 
 .canvas {
+	background-color: #1D1D1D;
+}
+
+.canvaswrapper:-moz-full-screen {
+    text-align: center;
+}
+
+.canvaswrapper:-webkit-full-screen {
 	background-color: #1D1D1D;
 }

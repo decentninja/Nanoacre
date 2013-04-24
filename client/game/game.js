@@ -41,8 +41,8 @@ function Game(map, config, ui) {
 					y: 200
 				},
 				target: {
-					x: 100,
-					y: 100
+					x: 300,
+					y: 300
 				},
 				shooting_cooldown: 0
 			},

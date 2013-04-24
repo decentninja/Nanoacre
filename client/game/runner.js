@@ -1,4 +1,4 @@
-function Runner(socket, canvas, config) {
+function Runner(socket, canvas, fullscreen, config) {
 	this.canvas = canvas
 	var canvas_context = canvas.getContext('2d')
 	this.config = config
@@ -12,12 +12,23 @@ function Runner(socket, canvas, config) {
 		],
 	}
 
+	var that = this
+	fullscreen.addEventListener("click", function() {
+		var el = that.canvas.parentElement
+		if(el.requestFullscreen) {
+			el.requestFullscreen()
+		} else if(el.webkitRequestFullScreen) {
+			el.webkitRequestFullScreen()
+		} else {
+			el.mozRequestFullScreen()
+		}
+	})
+
 	this.eventqueue = []
 
 	this.ui = new Ui(canvas_context, config, samplemap)
 	this.game = new Game(samplemap, config, this.ui)
-
-	this.network = new Network(socket, this.eventqueue, 10)
+	//this.network = new Network(socket, this.eventqueue, 10)
 
 	//TODO: when the client is ready to start, network.ready should be called
 	//this.network.ready(startFunc)
@@ -27,9 +38,6 @@ function Runner(socket, canvas, config) {
 }
 
 Runner.prototype.start = function() {
-	if(this.config.fullscreen) {
-		// DO fullscreen
-	}
 	var that = this
 	var canvas = this.canvas
 	this.canvas.onmousedown = function(ev) {
@@ -52,20 +60,23 @@ Runner.prototype.loop = function() {
 	requestAnimationFrame(this.loop.bind(this))
 }
 
-var runner = new Runner(null, document.querySelector(".canvas"), {
-	colors: {
-		teams: [
-			"#7EA885",
-			"#ECC57C",
-			"#E1856C",
-			"#872237",
-			"#A1A1AA"
-		],
-		background: "#1D1D1D",
-		bullet: "#C82257",
-		selected: "#208BB5",
+var runner = new Runner(
+	null, 
+	document.querySelector(".canvas"), 
+	document.querySelector(".fullscreen"), 
+	{
+		colors: {
+			teams: [
+				"#7EA885",
+				"#ECC57C",
+				"#E1856C",
+				"#872237",
+				"#A1A1AA"
+			],
+			background: "#1D1D1D",
+			bullet: "#C82257",
+			selected: "#208BB5"
 	},
-	fullscreen: true,
 })
 
 runner.start()
