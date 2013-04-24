@@ -28,16 +28,18 @@ function Runner(socket, canvas, fullscreen, config) {
 
 	this.ui = new Ui(canvas_context, config, samplemap)
 	this.game = new Game(samplemap, config, this.ui)
-	//this.network = new Network(socket, this.eventqueue, 10)
+	this.network = new Network(socket, this.eventqueue, 10)
 
 	//TODO: when the client is ready to start, network.ready should be called
-	//this.network.ready(startFunc)
+	this.network.ready(function(clockAdjustment) {
+		that.start(clockAdjustment)
+	})
 	//where startFunc is a function that takes the time since the server
 	//sent the start command and starts the gameloop with an adjusted
 	//gameclock
 }
 
-Runner.prototype.start = function() {
+Runner.prototype.start = function(clockAdjustment) {
 	var that = this
 	var canvas = this.canvas
 	this.canvas.onmousedown = function(ev) {
@@ -48,7 +50,7 @@ Runner.prototype.start = function() {
 		var y = ev.pageY - Math.round(bclr.top + window.pageYOffset - docElem.clientLeft)
 		that.ui.handleMousedown(x, y, that.game)
 	}
-	this.lasttime = performance.now()
+	this.lasttime = performance.now() - clockAdjustment
 	this.loop();
 }
 
@@ -60,23 +62,26 @@ Runner.prototype.loop = function() {
 	requestAnimationFrame(this.loop.bind(this))
 }
 
-var runner = new Runner(
-	null, 
-	document.querySelector(".canvas"), 
-	document.querySelector(".fullscreen"), 
-	{
-		colors: {
-			teams: [
-				"#7EA885",
-				"#ECC57C",
-				"#E1856C",
-				"#872237",
-				"#A1A1AA"
-			],
-			background: "#1D1D1D",
-			bullet: "#C82257",
-			selected: "#208BB5"
-	},
-})
-
-runner.start()
+var socket = new WebSocket("ws://localhost:9000/ws")
+socket.onmessage = function(e) {
+	if (e.data === "load") {
+		var runner = new Runner(
+			socket, 
+			document.querySelector(".canvas"), 
+			document.querySelector(".fullscreen"), 
+			{
+				colors: {
+					teams: [
+						"#7EA885",
+						"#ECC57C",
+						"#E1856C",
+						"#872237",
+						"#A1A1AA"
+					],
+					background: "#1D1D1D",
+					bullet: "#C82257",
+					selected: "#208BB5"
+				},
+			})
+	}
+}

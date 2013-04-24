@@ -1,21 +1,22 @@
 package server
 
-var (
-	PING  = []byte("ping")
-	START = []byte("start")
+import (
+	"log"
+)
+
+const (
+	PING  = "ping"
+	START = "start"
+	LOAD  = "load"
 )
 
 type game struct {
 	players []*player
+	ch      chan *message
 }
 
 func (g *game) run() {
-	ch := make(chan *message, 1)
-	for _, p := range g.players {
-		go p.listen(ch)
-	}
-
-	for mess := range ch {
+	for mess := range g.ch {
 		g.handleMessage(mess)
 	}
 }
@@ -28,14 +29,14 @@ func (g *game) sendToAllOthers(mess *message) {
 	}
 }
 
-func (g *game) sendToAll(data []byte) {
+func (g *game) sendToAll(data string) {
 	for _, p := range g.players {
 		p.send(data)
 	}
 }
 
 func (g *game) handleMessage(mess *message) {
-	switch string(mess.data) {
+	switch mess.data {
 	case "pong":
 		mess.p.send(PING)
 

@@ -2,10 +2,10 @@ function Network(websocket, eventqueue, pongCount) {
 	this.websocket = websocket
 	this.pongCount = pongCount
 
-	websocket.onopen = this.onopen
-	websocket.onmessage = this.onmessage
-	websocket.onclose = this.onclose
-	websocket.onerror = this.onerror
+	websocket.onopen    = this.onopen.bind(this)
+	websocket.onmessage = this.onmessage.bind(this)
+	websocket.onclose   = this.onclose.bind(this)
+	websocket.onerror   = this.onerror.bind(this)
 }
 
 (function() {
@@ -13,9 +13,9 @@ function Network(websocket, eventqueue, pongCount) {
 
 	Network.prototype.send = function(message) {
 		if (typeof message == "string" || message instanceof String) {
-			websocket.send(message)
+			this.websocket.send(message)
 		} else {
-			websocket.send(JSON.stringify(message))
+			this.websocket.send(JSON.stringify(message))
 		}
 	}
 
@@ -36,6 +36,7 @@ function Network(websocket, eventqueue, pongCount) {
 
 			case "start":
 				startFunc(this.latency)
+				startFunc = undefined
 				break;
 
 			default:
@@ -47,9 +48,9 @@ function Network(websocket, eventqueue, pongCount) {
 	
 	Network.prototype.onerror = function(e) {}
 
-	Notwork.prototype.gotPing = function() {
+	Network.prototype.gotPing = function() {
 		now = performance.now()
-		var done = this.latency.length + 1 >= pongCount
+		var done = this.latency.length + 1 >= this.pongCount
 		if (!done) {
 			this.send("pong")
 		} else {
