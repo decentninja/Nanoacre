@@ -8,7 +8,7 @@ function Network(websocket, eventqueue, pongCount) {
 	websocket.onerror = this.onerror
 }
 
-function() {
+(function() {
 	var startFunc
 
 	Network.prototype.send = function(message) {
@@ -71,4 +71,4 @@ function() {
 		}
 	}
 
-}()
+})()
