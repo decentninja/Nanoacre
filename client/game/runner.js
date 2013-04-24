@@ -14,17 +14,27 @@ function Runner(socket, canvas_selector, config) {
 		],
 	}
 
+	this.eventqueue = new Array()
+
 	this.ui = new Ui(canvas_context, config, samplemap)
 	this.game = new Game(samplemap, config, this.ui)
 
+	this.network = new Network(socket, this.eventqueue, 10)
+
 	this.lasttime = performance.now()
+
+	//TODO: when the client is ready to start, network.ready should be called
+	//this.network.ready(startFunc)
+	//where startFunc is a function that takes the time since the server
+	//sent the start command and starts the gameloop with an adjusted
+	//gameclock
 }
 
 Runner.prototype.loop = function() {
 	var newtime = performance.now()
 	var deltatime = newtime - this.lasttime
 	this.lasttime = newtime
-	this.game.step(deltatime)
+	this.game.step(deltatime, this.eventqueue)
 	requestAnimationFrame(this.loop.bind(this))
 }
 
