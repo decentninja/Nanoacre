@@ -1,11 +1,10 @@
+var TIME_STEP = 16;
+
 function Game(map, config, ui) {
 	this.map = map
 	this.config = config
 	this.ui = ui
-}
-
-Game.prototype.step = function(deltatime) {
-	var samplestate = {	// sample state
+	var samplestate = {
 		bullets: [
 			{
 				id: 0,
@@ -49,6 +48,23 @@ Game.prototype.step = function(deltatime) {
 			},
 		],
 	}
-	
-	this.ui.render(deltatime, samplestate)
+	this.timeline = new Timeline(samplestate)
+	this.timeBehind = 0
+}
+
+Game.prototype.step = function(deltatime) {
+	this.timeBehind += deltatime
+	while (this.timeBehind >= TIME_STEP) {
+		this.timeBehind -= TIME_STEP
+		this.timeline.step()
+	}
+	this.ui.render(deltatime, this.timeline.getCurrentState())
+}
+
+Game.prototype.addEvent = function(ev) {
+	this.timeline.insert(ev)
+}
+
+Game.prototype.getNextFrame = function() {
+	return this.timeline.getNextFrame();
 }

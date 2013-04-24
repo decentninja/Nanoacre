@@ -14,3 +14,16 @@ Ui.prototype.render = function(deltatime, state) {
 		this.ctx.fill();
 	}
 }
+
+Ui.prototype.handleMousedown = function(x, y, game) {
+	var ev = {
+		time: game.getNextFrame(),
+		type: "move",
+		who: 0,
+		towards: {
+			x: x,
+			y: y
+		}
+	}
+	game.addEvent(ev)
+}
