@@ -21,7 +21,7 @@ function() {
 
 	Network.prototype.ready = function(startFunction) {
 		startFunc = startFunction
-		this.latency = new Array()
+		this.latency = []
 		this.send("ready")
 	}
 
