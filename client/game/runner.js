@@ -1,5 +1,5 @@
-function Runner(socket, canvas, fullscreen, config) {
-	this.canvas = canvas
+function Runner(socket, container, config) {
+	var canvas = this.canvas = container.querySelector("canvas")
 	var canvas_context = canvas.getContext('2d')
 	this.config = config
 
@@ -13,8 +13,9 @@ function Runner(socket, canvas, fullscreen, config) {
 	}
 
 	var that = this
-	fullscreen.addEventListener("click", function() {
-		var el = that.canvas.parentElement
+	var fullscreenButton = container.querySelector(".fullscreen-button")
+	fullscreenButton.addEventListener("click", function() {
+		var el = container.querySelector(".fullscreen-container")
 		if(el.requestFullscreen) {
 			el.requestFullscreen()
 		} else if(el.webkitRequestFullScreen) {
@@ -71,8 +72,7 @@ socket.onmessage = function(e) {
 	if (e.data === "load") {
 		var runner = new Runner(
 			socket, 
-			document.querySelector(".canvas"), 
-			document.querySelector(".fullscreen"), 
+			document.querySelector(".game-container"),
 			{
 				colors: {
 					teams: [

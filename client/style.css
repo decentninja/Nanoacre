@@ -14,10 +14,22 @@ body {
 	background-color: #1D1D1D;
 }
 
-.canvaswrapper:-moz-full-screen {
+.fullscreen-container:-moz-full-screen {
+	background-color: black;
     text-align: center;
+	display: table;
+}
+.fullscreen-container:-moz-full-screen > .canvas-wrapper {
+	display: table-cell;
+	vertical-align: middle;
 }
 
-.canvaswrapper:-webkit-full-screen {
+.fullscreen-container:-webkit-full-screen {
 	background-color: black;
+    text-align: center;
+	display: table;
+}
+.fullscreen-container:-webkit-full-screen > .canvas-wrapper {
+	display: table-cell;
+	vertical-align: middle;
 }
