@@ -48,7 +48,11 @@ Runner.prototype.start = function(clockAdjustment) {
 		var bclr = that.canvas.getBoundingClientRect()
 		var x = ev.pageX - Math.round(bclr.left + window.pageXOffset - docElem.clientTop)
 		var y = ev.pageY - Math.round(bclr.top + window.pageYOffset - docElem.clientLeft)
-		that.ui.handleMousedown(x, y, that.game)
+		lineevent = that.ui.handleMousedown(x, y, that.game)
+		if (lineevent) {
+			that.network.send(lineevent)
+			that.eventqueue.push(lineevent)
+		}
 	}
 	this.lasttime = performance.now() - clockAdjustment
 	this.loop();

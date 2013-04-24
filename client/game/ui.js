@@ -25,5 +25,5 @@ Ui.prototype.handleMousedown = function(x, y, game) {
 			y: y
 		}
 	}
-	game.addEvent(ev)
+	return ev
 }

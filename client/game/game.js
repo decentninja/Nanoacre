@@ -52,17 +52,17 @@ function Game(map, config, ui) {
 	this.timeBehind = 0
 }
 
-Game.prototype.step = function(deltatime) {
+Game.prototype.step = function(deltatime, eventqueue) {
+	while (eventqueue.length > 0) {
+		this.timeline.insert(eventqueue.pop())
+	}
+
 	this.timeBehind += deltatime
 	while (this.timeBehind >= TIME_STEP) {
 		this.timeBehind -= TIME_STEP
 		this.timeline.step()
 	}
 	this.ui.render(deltatime, this.timeline.getCurrentState())
-}
-
-Game.prototype.addEvent = function(ev) {
-	this.timeline.insert(ev)
 }
 
 Game.prototype.getNextFrame = function() {

@@ -1,6 +1,7 @@
 function Network(websocket, eventqueue, pongCount) {
-	this.websocket = websocket
-	this.pongCount = pongCount
+	this.websocket  = websocket
+	this.eventqueue = eventqueue
+	this.pongCount  = pongCount
 
 	websocket.onopen    = this.onopen.bind(this)
 	websocket.onmessage = this.onmessage.bind(this)
@@ -40,7 +41,7 @@ function Network(websocket, eventqueue, pongCount) {
 				break;
 
 			default:
-				eventqueue.push(JSON.parse(message))
+				this.eventqueue.push(JSON.parse(message))
 		}
 	}
 	

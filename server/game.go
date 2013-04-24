@@ -1,9 +1,5 @@
 package server
 
-import (
-	"log"
-)
-
 const (
 	PING  = "ping"
 	START = "start"
