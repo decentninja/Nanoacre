@@ -9,9 +9,20 @@ Ui.prototype.render = function(deltatime, state) {
 	for(var i = 0; i < state.units.length; i++) {
 		var unit = state.units[i]
 		this.ctx.fillStyle = this.config.colors.teams[unit.owning_player]
-		this.ctx.beginPath();
+		this.ctx.beginPath()
 		this.ctx.arc(unit.position.x, unit.position.y, 10, 0, Math.PI*2, false)
-		this.ctx.fill();
+		this.ctx.fill()
+	}
+	this.ctx.strokeStyle = this.config.colors.bullet
+	this.ctx.lineWidth = 3;
+	for(var i = 0; i < state.bullets.length; i++) {
+		var bullet = state.bullets[i]
+		this.ctx.beginPath()
+		this.ctx.moveTo(bullet.position.x, bullet.position.y)
+		this.ctx.lineTo(
+			bullet.position.x + 50*bullet.direction.x, 
+			bullet.position.y + 50*bullet.direction.y)
+		this.ctx.stroke()
 	}
 }
 
