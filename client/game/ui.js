@@ -21,10 +21,10 @@ Ui.prototype.render = function(deltatime, state) {
 	}
 	this.ctx.fillStyle = this.config.colors.map
 	this.ctx.beginPath()
-	for(var i = 0; i < this.map.parts[0].length; i++) {
-		for(var j = 0; j < this.map.parts.length; j++) {
-			if(this.map.parts[j][i] == 1) {
-				this.ctx.rect(i*this.part_width, j*this.part_height, this.part_width, this.part_height)
+	for(var i = 0; i < this.map.parts.length; i++) {
+		for(var j = 0; j < this.map.parts[0].length; j++) {
+			if(this.map.parts[i][j] == 1) {
+				this.ctx.rect(j*this.part_width, i*this.part_height, this.part_width, this.part_height)
 			}
 		}
 	}

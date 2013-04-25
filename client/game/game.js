@@ -39,18 +39,18 @@ function Game(map, config, ui) {
 				id: 1,
 				owning_player: 1,
 				position: {
-					x: 200,
-					y: 200
+					x: 100,
+					y: 100
 				},
 				target: {
-					x: 300,
-					y: 300
+					x: 400,
+					y: 400
 				},
 				shooting_cooldown: 0
 			},
 		],
 	}
-	this.timeline = new Timeline(samplestate)
+	this.timeline = new Timeline(map, samplestate)
 	this.timeBehind = 0
 }
 

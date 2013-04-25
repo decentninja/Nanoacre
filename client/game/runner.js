@@ -20,7 +20,6 @@ function Runner(socket, container, config) {
 		],
 	}
 
-	var that = this
 	var fullscreenButton = container.querySelector(".fullscreen-button")
 	fullscreenButton.addEventListener("click", function() {
 		var el = container.querySelector(".fullscreen-container")
@@ -39,6 +38,7 @@ function Runner(socket, container, config) {
 	this.game = new Game(samplemap, config, this.ui)
 	this.network = new Network(socket, this.eventqueue, 10)
 
+	var that = this
 	//TODO: when the client is ready to start, network.ready should be called
 	this.network.ready(function(clockAdjustment) {
 		that.start(clockAdjustment)

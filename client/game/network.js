@@ -13,7 +13,7 @@ function Network(websocket, eventqueue, pongCount) {
 	var startFunc
 
 	Network.prototype.send = function(message) {
-		if (typeof message == "string" || message instanceof String) {
+		if (typeof message == "string") {
 			this.websocket.send(message)
 		} else {
 			this.websocket.send(JSON.stringify(message))

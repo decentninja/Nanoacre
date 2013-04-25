@@ -1,14 +1,15 @@
 ;(function() {
 "use strict";
 
-window.Timeline = function(initialState) {
+window.Timeline = function(map, initialState) {
 	this.curTime = 0;
+	this.map = map;
 	this.events = [];
 	this.states = [initialState];
 }
 
 Timeline.prototype.step = function() {
-	var newState = Logic.step(this.states[this.curTime], this.events[this.curTime + 1] || []);
+	var newState = Logic.step(this.map, this.states[this.curTime], this.events[this.curTime + 1] || []);
 	this.states.push(newState);
 	++this.curTime;
 };
@@ -32,7 +33,7 @@ Timeline.prototype.insert = function(event) {
 		return;
 
 	for (var t = time; t <= this.curTime; ++t) {
-		this.states[t] = Logic.step(this.states[t-1], this.events[t] || []);
+		this.states[t] = Logic.step(this.map, this.states[t-1], this.events[t] || []);
 	}
 }
 
