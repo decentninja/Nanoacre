@@ -2,17 +2,12 @@ function Ui(canvas_context, config, map) {
 	this.ctx = canvas_context
 	this.config = config
 	this.map = map
+	this.part_height = this.ctx.canvas.height / this.map.parts.length
+	this.part_width = this.ctx.canvas.width / this.map.parts[0].length
 }
 
 Ui.prototype.render = function(deltatime, state) {
 	this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-	for(var i = 0; i < state.units.length; i++) {
-		var unit = state.units[i]
-		this.ctx.fillStyle = this.config.colors.teams[unit.owning_player]
-		this.ctx.beginPath()
-		this.ctx.arc(unit.position.x, unit.position.y, 10, 0, Math.PI*2, false)
-		this.ctx.fill()
-	}
 	this.ctx.strokeStyle = this.config.colors.bullet
 	this.ctx.lineWidth = 3;
 	for(var i = 0; i < state.bullets.length; i++) {
@@ -23,6 +18,23 @@ Ui.prototype.render = function(deltatime, state) {
 			bullet.position.x + 50*bullet.direction.x, 
 			bullet.position.y + 50*bullet.direction.y)
 		this.ctx.stroke()
+	}
+	this.ctx.fillStyle = this.config.colors.map
+	this.ctx.beginPath()
+	for(var i = 0; i < this.map.parts[0].length; i++) {
+		for(var j = 0; j < this.map.parts.length; j++) {
+			if(this.map.parts[j][i] == 1) {
+				this.ctx.rect(i*this.part_width, j*this.part_height, this.part_width, this.part_height)
+			}
+		}
+	}
+	this.ctx.fill();
+	for(var i = 0; i < state.units.length; i++) {
+		var unit = state.units[i]
+		this.ctx.fillStyle = this.config.colors.teams[unit.owning_player]
+		this.ctx.beginPath()
+		this.ctx.arc(unit.position.x, unit.position.y, 10, 0, Math.PI*2, false)
+		this.ctx.fill()
 	}
 }
 
