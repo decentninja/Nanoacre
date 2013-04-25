@@ -1,5 +1,6 @@
 function Runner(socket, container, config) {
 	var canvas = this.canvas = container.querySelector("canvas")
+	this.container = container
 	var canvas_context = canvas.getContext('2d')
 	this.config = config
 
@@ -41,8 +42,9 @@ function Runner(socket, container, config) {
 }
 
 Runner.prototype.start = function(clockAdjustment) {
-	document.querySelector(".game-container").style.setProperty("opacity", "1")
-	document.querySelector(".lobby").style.setProperty("opacity", "0")
+	var lobby = this.container.querySelector(".lobby")
+	lobby.style.setProperty("opacity", "0")
+	lobby.innerHTML = "Connected"
 	var that = this
 	var canvas = this.canvas
 	this.canvas.onmousedown = function(ev) {

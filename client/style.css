@@ -7,16 +7,9 @@
 	text-align: center;
 }
 
-.lobby > h2 {
+.lobby {
 	text-align: center;
-}
-
-.game-container, .lobby {
-	transition: opacity 0.2s ease;
-}
-
-.game-container {
-	opacity: 0;
+	transition: all 3s;
 }
 
 .canvas {
