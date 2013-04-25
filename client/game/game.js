@@ -5,6 +5,7 @@ function Game(map, config, ui) {
 	this.config = config
 	this.ui = ui
 	var samplestate = {
+		nbullets: 1,
 		bullets: [
 			{
 				id: 0,
@@ -19,6 +20,7 @@ function Game(map, config, ui) {
 				}
 			},
 		],
+		nunits: 2,
 		units: [
 			{
 				id: 0,

@@ -2,15 +2,42 @@
 "use strict";
 
 var BULLET_SPEED = 10;
+var SHOOTING_COOLDOWN = 3;
 
 function step(state, events) {
 	state = deepCopy(state);
 	events.forEach(function(ev) {
-		if (ev.type === "move") {
-			state.units.forEach(function(u) {
-				if (u.id === ev.who)
-					u.target = ev.towards;
-			});
+		switch(ev.type) {
+			case "move":
+				state.units.forEach(function(u) {
+					if (u.id === ev.who)
+						u.target = ev.towards;
+				});
+				break;
+
+			case "fire":
+				var owning_player, pos, dir, x, y, l;
+				state.units.forEach(function(u) {
+					if (u.id === ev.who && u.shooting_cooldown == 0) {
+						owning_player = u.owning_player;
+						pos = u.position;
+						// u.shooting_cooldown = SHOOTING_COOLDOWN;
+						x = ev.towards.x - pos.x;
+						y = ev.towards.y - pos.y;
+						l = Math.sqrt(x*x + y*y)
+						state.nbullets++;
+						state.bullets.push({
+							id: state.nbullets,
+							owning_player: owning_player,
+							position: pos,
+							direction: {
+								x: x / l,
+								y: y / l
+							}
+						});
+					}
+				});
+				break;
 		}
 	});
 	state.bullets.forEach(function(b) {
