@@ -41,6 +41,8 @@ function Runner(socket, container, config) {
 }
 
 Runner.prototype.start = function(clockAdjustment) {
+	document.querySelector(".game-container").setAttribute("style", "display: block;")
+	document.querySelector(".lobby").setAttribute("style", "display: none;")
 	var that = this
 	var canvas = this.canvas
 	this.canvas.onmousedown = function(ev) {
