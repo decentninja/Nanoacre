@@ -90,6 +90,10 @@ socket.onmessage = function(e) {
 					bullet: "#C82257",
 					selected: "#208BB5"
 				},
+				buttons: {
+					0: "fire",
+					2: "move"
+				}
 			})
 	}
 }
