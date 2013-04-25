@@ -15,10 +15,19 @@ Ui.prototype.render = function(deltatime, state) {
 	}
 }
 
-Ui.prototype.handleMousedown = function(x, y, game) {
+Ui.prototype.handleMousedown = function(x, y, button, game) {
+	var type
+	switch(button) {
+		case 0:
+			type = "fire"
+			break
+		case 2:
+			type = "move"
+			break
+	}
 	var ev = {
 		time: game.getNextFrame(),
-		type: "move",
+		type: type,
 		who: 0,
 		towards: {
 			x: x,
