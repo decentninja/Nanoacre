@@ -8,8 +8,15 @@
 }
 
 .lobby > h2 {
-	margin-top: 10%;
 	text-align: center;
+}
+
+.game-container, .lobby {
+	transition: opacity 0.2s ease;
+}
+
+.game-container {
+	opacity: 0;
 }
 
 .canvas {
