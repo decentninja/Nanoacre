@@ -28,7 +28,7 @@ function Runner(socket, container, config) {
 			el.requestFullscreen()
 		} else if(el.webkitRequestFullScreen) {
 			el.webkitRequestFullScreen()
-		} else {
+		} else if(mozRequestFullScreen) {
 			el.mozRequestFullScreen()
 		}
 	})
