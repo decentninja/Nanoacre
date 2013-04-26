@@ -1,7 +1,14 @@
 "use strict";
 
 function deepCopy(obj) {
-	return JSON.parse(JSON.stringify(obj));
+	if (typeof obj !== "object" || obj === null)
+		return obj;
+	if (obj instanceof Array)
+		return obj.slice();
+	var ret = {};
+	for (var a in obj)
+		ret[a] = deepCopy(obj[a]);
+	return ret;
 }
 
 window.requestAnimationFrame =
