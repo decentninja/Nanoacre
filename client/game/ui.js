@@ -13,10 +13,12 @@ Ui.prototype.render = function(deltatime, state) {
 	for(var i = 0; i < state.bullets.length; i++) {
 		var bullet = state.bullets[i]
 		this.ctx.beginPath()
-		this.ctx.moveTo(bullet.position.x, bullet.position.y)
+		var x = bullet.position.x * this.part_width / TILE_SIZE;
+		var y = bullet.position.y * this.part_height / TILE_SIZE;
+		this.ctx.moveTo(x, y)
 		this.ctx.lineTo(
-			bullet.position.x + 50*bullet.direction.x, 
-			bullet.position.y + 50*bullet.direction.y)
+			x + 50*bullet.direction.x,
+			y + 50*bullet.direction.y)
 		this.ctx.stroke()
 	}
 	this.ctx.fillStyle = this.config.colors.map
@@ -33,7 +35,9 @@ Ui.prototype.render = function(deltatime, state) {
 		var unit = state.units[i]
 		this.ctx.fillStyle = this.config.colors.teams[unit.owning_player]
 		this.ctx.beginPath()
-		this.ctx.arc(unit.position.x, unit.position.y, 10, 0, Math.PI*2, false)
+		var x = unit.position.x * this.part_width / TILE_SIZE;
+		var y = unit.position.y * this.part_height / TILE_SIZE;
+		this.ctx.arc(x, y, 10, 0, Math.PI*2, false)
 		this.ctx.fill()
 	}
 }
@@ -44,8 +48,8 @@ Ui.prototype.handleMousedown = function(x, y, button, game) {
 		type: this.config.buttons[button],
 		who: 0,
 		towards: {
-			x: x,
-			y: y
+			x: (x * TILE_SIZE / this.part_width) | 0,
+			y: (y * TILE_SIZE / this.part_height) | 0
 		}
 	}
 	return ev

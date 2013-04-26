@@ -1,13 +1,15 @@
+var TILE_SIZE = 1024;
+
 ;(function() {
 "use strict";
 
-var BULLET_SPEED = 10;
+var BULLET_SPEED = 200;
 var SHOOTING_COOLDOWN = 0.5 * 60;
 
-var PLAYER_SPEED = 5;
-var PLAYER_RADIUS = 10;
+var PLAYER_SPEED = 100;
+var PLAYER_RADIUS = 200;
 
-var HEIGHT = 500, WIDTH = 1000; // XXX: hackish
+var TEST_DIST = 100;
 
 function moveOutFromWalls(map, pos) {
 	function min2(a, b) {
@@ -17,8 +19,7 @@ function moveOutFromWalls(map, pos) {
 	}
 
 	var ph = map.parts.length, pw = map.parts[0].length;
-	var eachh = HEIGHT / ph, eachw = WIDTH / pw;
-	var px = Math.floor(pos.x / eachw), py = Math.floor(pos.y / eachh);
+	var px = Math.floor(pos.x / TILE_SIZE), py = Math.floor(pos.y / TILE_SIZE);
 	px = Math.min(Math.max(px, 0), pw);
 	py = Math.min(Math.max(py, 0), ph);
 	if (map.parts[py][px]) {
@@ -26,8 +27,8 @@ function moveOutFromWalls(map, pos) {
 		for (var i = 0; i < ph; ++i) {
 			for (var j = 0; j < pw; ++j) {
 				if (!map.parts[i][j]) {
-					var d2 = min2(pos.x - eachw * j, pos.x - eachw * (j+1)) +
-						min2(pos.y - eachh * i, pos.y - eachh * (i+1));
+					var d2 = min2(pos.x - TILE_SIZE * j, pos.x - TILE_SIZE * (j+1)) +
+						min2(pos.y - TILE_SIZE * i, pos.y - TILE_SIZE * (i+1));
 					available.push([d2, i, j]);
 				}
 			}
@@ -40,19 +41,18 @@ function moveOutFromWalls(map, pos) {
 		px = best[2];
 	}
 	// XXX: We shouldn't center this...
-	return {x: (px + 1/2) * eachw, y: (py + 1/2) * eachh};
+	return {x: (px + 1/2) * TILE_SIZE, y: (py + 1/2) * TILE_SIZE};
 }
 
 // Check whether a position is free from wall collisions, in the most
 // inefficient possible way.
 function freespace(map, pos) {
 	var ph = map.parts.length, pw = map.parts[0].length;
-	var eachh = HEIGHT / ph, eachw = WIDTH / pw;
 	for (var i = 0; i < ph; ++i) {
 		for (var j = 0; j < pw; ++j) {
 			if (map.parts[i][j]) {
-				if (i * eachh - PLAYER_RADIUS <= pos.y && (i + 1) * eachh + PLAYER_RADIUS >= pos.y &&
-					j * eachw - PLAYER_RADIUS <= pos.x && (j + 1) * eachw + PLAYER_RADIUS >= pos.x)
+				if (i * TILE_SIZE - PLAYER_RADIUS <= pos.y && (i + 1) * TILE_SIZE + PLAYER_RADIUS >= pos.y &&
+					j * TILE_SIZE - PLAYER_RADIUS <= pos.x && (j + 1) * TILE_SIZE + PLAYER_RADIUS >= pos.x)
 				{
 					return false;
 				}
@@ -111,7 +111,7 @@ function moveUnit(map, u) {
 		var testPos = {x: u.position.x, y: u.position.y};
 		dirs.forEach(function(dir) {
 			if (dir !== rel.dir)
-				testPos[dir] += rel[dir] * 5;
+				testPos[dir] += rel[dir] * TEST_DIST;
 		});
 		if (freespace(map, testPos)) {
 			console.log("Unset wallmove");

@@ -26,8 +26,8 @@ function Runner(socket, container, config) {
 				id: 0,
 				owning_player: 0,
 				position: {
-					x: 110,
-					y: 110,
+					x: 2200,
+					y: 2200,
 				},
 				direction: {
 					x: 0.707106781,
@@ -41,12 +41,12 @@ function Runner(socket, container, config) {
 				id: 0,
 				owning_player: 0,
 				position: {
-					x: 100,
-					y: 100
+					x: 2000,
+					y: 2000
 				},
 				target: {
-					x: 100,
-					y: 100
+					x: 2000,
+					y: 2000
 				},
 				shooting_cooldown: 0
 			},
@@ -54,12 +54,12 @@ function Runner(socket, container, config) {
 				id: 1,
 				owning_player: 1,
 				position: {
-					x: 100,
-					y: 100
+					x: 2000,
+					y: 2000
 				},
 				target: {
-					x: 400,
-					y: 400
+					x: 8000,
+					y: 8000
 				},
 				shooting_cooldown: 0
 			},
