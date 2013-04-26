@@ -12,7 +12,7 @@ type game struct {
 }
 
 func (g *game) load() {
-	sendToAll(LOAD) //TODO: send more interesting data
+	g.sendToAll(LOAD) //TODO: send more interesting data
 }
 
 func (g *game) run() {
