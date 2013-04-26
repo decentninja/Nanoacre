@@ -70,7 +70,10 @@ function Runner(socket, container, config) {
 
 	this.ui = new Ui(canvas_context, config, samplemap)
 	this.game = new Game(samplemap, samplestate, config, this.ui)
-	this.network = new Network(socket, this.eventqueue, 10)
+	if (socket)
+		this.network = new Network(socket, this.eventqueue, 10)
+	else
+		this.network = new MockNetwork();
 }
 
 Runner.prototype.run = function() {
@@ -150,8 +153,15 @@ function initializeGame() {
 	runner.run()
 }
 
-var socket = new WebSocket("ws://" + location.host + "/ws")
-socket.onmessage = function(e) {
-	if (e.data === "load")
-		initializeGame();
+var socket = null;
+if (debug) {
+	initializeGame();
+}
+else {
+	var wsServer = GetParams["ws"] || location.host;
+	socket = new WebSocket("ws://" + wsServer + "/ws")
+	socket.onmessage = function(e) {
+		if (e.data === "load")
+			initializeGame();
+	}
 }

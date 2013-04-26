@@ -76,4 +76,13 @@
 		}
 	}
 
+	window.MockNetwork = function() {
+		this.takeOverSocket = this.send = function() {};
+		this.ready = function(callback) {
+			setTimeout(function() {
+				callback(0);
+			}, 0);
+		};
+	};
+
 })()
