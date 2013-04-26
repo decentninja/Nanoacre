@@ -1,23 +1,37 @@
 ;(function() {
 "use strict";
 
+// Because of performance/memory concerns, we only keep the 512 previous states.
+// This should be more than enough in practice (~10 seconds back).
+var BUFFER_SIZE = 512;
+var MASK = BUFFER_SIZE - 1;
+
 window.Timeline = function(map, initialState) {
 	this.curTime = 0;
 	this.map = map;
 	this.events = [];
-	this.states = [initialState];
+	this.states = new Array(BUFFER_SIZE);
+	this.states[0] = initialState;
 }
 
 Timeline.prototype.step = function() {
-	var newState = Logic.step(this.map, this.states[this.curTime], this.events[this.curTime + 1] || []);
-	this.states.push(newState);
+	this._progress(this.curTime);
 	++this.curTime;
 };
+
+Timeline.prototype._progress = function(prevT) {
+	var newState = Logic.step(this.map, this.states[prevT & MASK], this.events[prevT + 1] || []);
+	this.states[(prevT + 1) & MASK] = newState;
+}
 
 Timeline.prototype.insert = function(event) {
 	var time = event.time;
 	if (time <= 0) {
 		throw new Error("Timeline tried to insert something before the initial state.");
+	}
+
+	if (this.curTime - time >= BUFFER_SIZE - 1) {
+		throw new Error("Event was too long ago.");
 	}
 
 	if (this.events.length <= time)
@@ -29,16 +43,14 @@ Timeline.prototype.insert = function(event) {
 	if (this.events[time].length > 1)
 		this.events[time].sort(deepArbitraryCompare);
 
-	if (time > this.curTime)
-		return;
-
-	for (var t = time; t <= this.curTime; ++t) {
-		this.states[t] = Logic.step(this.map, this.states[t-1], this.events[t] || []);
+	if (time <= this.curTime) {
+		for (var t = time; t <= this.curTime; ++t)
+			this._progress(t-1);
 	}
 }
 
 Timeline.prototype.getCurrentState = function() {
-	return this.states[this.curTime];
+	return this.states[this.curTime & MASK];
 };
 
 Timeline.prototype.getNextFrame = function() {
