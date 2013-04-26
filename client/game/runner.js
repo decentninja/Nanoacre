@@ -78,7 +78,7 @@ Runner.prototype.loop = function() {
 	requestAnimationFrame(this.loop.bind(this))
 }
 
-var socket = new WebSocket("ws://localhost:9000/ws")
+var socket = new WebSocket("ws://" + location.host + "/ws")
 socket.onmessage = function(e) {
 	if (e.data === "load") {
 		var runner = new Runner(
