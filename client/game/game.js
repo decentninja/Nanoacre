@@ -1,56 +1,10 @@
 var TIME_STEP = 16;
 
-function Game(map, config, ui) {
+function Game(map, initialState, config, ui) {
 	this.map = map
 	this.config = config
 	this.ui = ui
-	var samplestate = {
-		nbullets: 1,
-		bullets: [
-			{
-				id: 0,
-				owning_player: 0,
-				position: {
-					x: 110,
-					y: 110,
-				},
-				direction: {
-					x: 0.707106781,
-					y: 0.707106781,
-				}
-			},
-		],
-		nunits: 2,
-		units: [
-			{
-				id: 0,
-				owning_player: 0,
-				position: {
-					x: 100,
-					y: 100
-				},
-				target: {
-					x: 100,
-					y: 100
-				},
-				shooting_cooldown: 0
-			},
-			{
-				id: 1,
-				owning_player: 1,
-				position: {
-					x: 100,
-					y: 100
-				},
-				target: {
-					x: 400,
-					y: 400
-				},
-				shooting_cooldown: 0
-			},
-		],
-	}
-	this.timeline = new Timeline(map, samplestate)
+	this.timeline = new Timeline(map, initialState)
 	this.timeBehind = 0
 }
 

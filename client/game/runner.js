@@ -19,6 +19,52 @@ function Runner(socket, container, config) {
 			[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 		],
 	}
+	var samplestate = {
+		nbullets: 1,
+		bullets: [
+			{
+				id: 0,
+				owning_player: 0,
+				position: {
+					x: 110,
+					y: 110,
+				},
+				direction: {
+					x: 0.707106781,
+					y: 0.707106781,
+				}
+			},
+		],
+		nunits: 2,
+		units: [
+			{
+				id: 0,
+				owning_player: 0,
+				position: {
+					x: 100,
+					y: 100
+				},
+				target: {
+					x: 100,
+					y: 100
+				},
+				shooting_cooldown: 0
+			},
+			{
+				id: 1,
+				owning_player: 1,
+				position: {
+					x: 100,
+					y: 100
+				},
+				target: {
+					x: 400,
+					y: 400
+				},
+				shooting_cooldown: 0
+			},
+		],
+	}
 
 	var fullscreenButton = container.querySelector(".fullscreen-button")
 	fullscreenButton.addEventListener("click", function() {
@@ -35,7 +81,7 @@ function Runner(socket, container, config) {
 	this.eventqueue = []
 
 	this.ui = new Ui(canvas_context, config, samplemap)
-	this.game = new Game(samplemap, config, this.ui)
+	this.game = new Game(samplemap, samplestate, config, this.ui)
 	this.network = new Network(socket, this.eventqueue, 10)
 
 	var that = this
