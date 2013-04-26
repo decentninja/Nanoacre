@@ -78,11 +78,11 @@ Runner.prototype.run = function() {
 	var fullscreenButton = this.container.querySelector(".fullscreen-button")
 	fullscreenButton.addEventListener("click", function() {
 		var el = that.container.querySelector(".fullscreen-container")
-		if(el.requestFullscreen) {
+		if (el.requestFullscreen) {
 			el.requestFullscreen()
-		} else if(el.webkitRequestFullScreen) {
+		} else if (el.webkitRequestFullScreen) {
 			el.webkitRequestFullScreen()
-		} else if(mozRequestFullScreen) {
+		} else if (el.mozRequestFullScreen) {
 			el.mozRequestFullScreen()
 		}
 	})
