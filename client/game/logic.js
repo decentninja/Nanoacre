@@ -20,8 +20,8 @@ function moveOutFromWalls(map, pos) {
 
 	var ph = map.parts.length, pw = map.parts[0].length;
 	var px = Math.floor(pos.x / TILE_SIZE), py = Math.floor(pos.y / TILE_SIZE);
-	px = Math.min(Math.max(px, 0), pw);
-	py = Math.min(Math.max(py, 0), ph);
+	px = Math.min(Math.max(px, 0), pw-1);
+	py = Math.min(Math.max(py, 0), ph-1);
 	if (map.parts[py][px]) {
 		var available = [];
 		for (var i = 0; i < ph; ++i) {
