@@ -32,3 +32,7 @@ func (p *player) listen() {
 func (p *player) send(data string) {
 	websocket.Message.Send(p.conn, data)
 }
+
+func (p *player) sendJSON(data interface{}) {
+	websocket.JSON.Send(p.conn, data)
+}

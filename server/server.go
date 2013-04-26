@@ -32,7 +32,7 @@ func newConnection(ws *websocket.Conn) {
 			ch:      p.ch,
 		}
 		log.Println("Starting a new game.")
-		g.sendToAll(LOAD)
+		g.load()
 		g.run()
 	}
 }
