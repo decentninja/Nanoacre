@@ -2,7 +2,7 @@
 "use strict";
 
 var BULLET_SPEED = 10;
-var SHOOTING_COOLDOWN = 3;
+var SHOOTING_COOLDOWN = 0.5 * 60;
 
 var PLAYER_SPEED = 5;
 var PLAYER_RADIUS = 10;
@@ -151,7 +151,7 @@ function step(map, state, events) {
 					if (u.id === ev.who && u.shooting_cooldown == 0) {
 						owning_player = u.owning_player;
 						pos = deepCopy(u.position);
-						// u.shooting_cooldown = SHOOTING_COOLDOWN;
+						u.shooting_cooldown = SHOOTING_COOLDOWN;
 						x = ev.towards.x - pos.x;
 						y = ev.towards.y - pos.y;
 						l = Math.sqrt(x*x + y*y)
@@ -175,6 +175,10 @@ function step(map, state, events) {
 		b.position.y += b.direction.y * BULLET_SPEED;
 	});
 	state.units.forEach(moveUnit.bind(this, map));
+	state.units.forEach(function(u) {
+		if(u.shooting_cooldown) 
+			--u.shooting_cooldown;
+	});
 	return state;
 }
 
