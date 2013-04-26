@@ -66,9 +66,18 @@ function Runner(socket, container, config) {
 		],
 	}
 
-	var fullscreenButton = container.querySelector(".fullscreen-button")
+	this.eventqueue = []
+
+	this.ui = new Ui(canvas_context, config, samplemap)
+	this.game = new Game(samplemap, samplestate, config, this.ui)
+	this.network = new Network(socket, this.eventqueue, 10)
+}
+
+Runner.prototype.run = function() {
+	var that = this
+	var fullscreenButton = this.container.querySelector(".fullscreen-button")
 	fullscreenButton.addEventListener("click", function() {
-		var el = container.querySelector(".fullscreen-container")
+		var el = that.container.querySelector(".fullscreen-container")
 		if(el.requestFullscreen) {
 			el.requestFullscreen()
 		} else if(el.webkitRequestFullScreen) {
@@ -78,24 +87,13 @@ function Runner(socket, container, config) {
 		}
 	})
 
-	this.eventqueue = []
-
-	this.ui = new Ui(canvas_context, config, samplemap)
-	this.game = new Game(samplemap, samplestate, config, this.ui)
-	this.network = new Network(socket, this.eventqueue, 10)
-
-	var that = this
-	//TODO: when the client is ready to start, network.ready should be called
 	this.network.takeOverSocket()
 	this.network.ready(function(clockAdjustment) {
-		that.start(clockAdjustment)
+		that.startLoop(clockAdjustment)
 	})
-	//where startFunc is a function that takes the time since the server
-	//sent the start command and starts the gameloop with an adjusted
-	//gameclock
 }
 
-Runner.prototype.start = function(clockAdjustment) {
+Runner.prototype.startLoop = function(clockAdjustment) {
 	var lobby = this.container.querySelector(".lobby")
 	lobby.style.setProperty("opacity", "0")
 	lobby.innerHTML = "Connected"
@@ -127,30 +125,33 @@ Runner.prototype.loop = function() {
 	requestAnimationFrame(this.loop.bind(this))
 }
 
+function initializeGame() {
+	var config = {
+		colors: {
+			teams: [
+				"#7EA885",
+				"#ECC57C",
+				"#E1856C",
+				"#872237",
+				"#A1A1AA"
+			],
+			background: "#1D1D1D",
+			bullet: "#C82257",
+			selected: "#208BB5",
+			map: "#262626",
+		},
+		buttons: {
+			0: "fire",
+			2: "move"
+		}
+	}
+	var container = document.querySelector(".game-container");
+	var runner = new Runner(socket, container, config)
+	runner.run()
+}
+
 var socket = new WebSocket("ws://" + location.host + "/ws")
 socket.onmessage = function(e) {
-	if (e.data === "load") {
-		var runner = new Runner(
-			socket, 
-			document.querySelector(".game-container"),
-			{
-				colors: {
-					teams: [
-						"#7EA885",
-						"#ECC57C",
-						"#E1856C",
-						"#872237",
-						"#A1A1AA"
-					],
-					background: "#1D1D1D",
-					bullet: "#C82257",
-					selected: "#208BB5",
-					map: "#262626",
-				},
-				buttons: {
-					0: "fire",
-					2: "move"
-				}
-			})
-	}
+	if (e.data === "load")
+		initializeGame();
 }
