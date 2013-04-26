@@ -128,6 +128,8 @@ Runner.prototype.loop = function() {
 	requestAnimationFrame(this.loop.bind(this))
 }
 
+var runner; // for debugging
+
 function initializeGame() {
 	var config = {
 		colors: {
@@ -149,7 +151,7 @@ function initializeGame() {
 		}
 	}
 	var container = document.querySelector(".game-container");
-	var runner = new Runner(socket, container, config)
+	runner = new Runner(socket, container, config)
 	runner.run()
 }
 
