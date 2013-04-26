@@ -1,16 +1,19 @@
-function Network(websocket, eventqueue, pongCount) {
-	this.websocket  = websocket
-	this.eventqueue = eventqueue
-	this.pongCount  = pongCount
-
-	websocket.onopen    = this.onopen.bind(this)
-	websocket.onmessage = this.onmessage.bind(this)
-	websocket.onclose   = this.onclose.bind(this)
-	websocket.onerror   = this.onerror.bind(this)
-}
-
 (function() {
-	var startFunc
+	"use strict";
+
+	window.Network = function(websocket, eventqueue, pongCount) {
+		this.websocket = websocket
+		this.eventqueue = eventqueue
+		this.pongCount = pongCount
+		this.startFunc = null
+	}
+
+	Network.prototype.takeOverSocket = function() {
+		this.websocket.onopen = this.onopen.bind(this)
+		this.websocket.onmessage = this.onmessage.bind(this)
+		this.websocket.onclose = this.onclose.bind(this)
+		this.websocket.onerror = this.onerror.bind(this)
+	}
 
 	Network.prototype.send = function(message) {
 		if (typeof message == "string") {
@@ -21,7 +24,7 @@ function Network(websocket, eventqueue, pongCount) {
 	}
 
 	Network.prototype.ready = function(startFunction) {
-		startFunc = startFunction
+		this.startFunc = startFunction
 		this.latency = []
 		this.send("ready")
 	}
@@ -36,8 +39,8 @@ function Network(websocket, eventqueue, pongCount) {
 				break;
 
 			case "start":
-				startFunc(this.latency)
-				startFunc = undefined
+				this.startFunc(this.latency)
+				this.startFunc = null
 				break;
 
 			default:
@@ -50,7 +53,7 @@ function Network(websocket, eventqueue, pongCount) {
 	Network.prototype.onerror = function(e) {}
 
 	Network.prototype.gotPing = function() {
-		now = performance.now()
+		var now = performance.now()
 		var done = this.latency.length + 1 >= this.pongCount
 		if (!done) {
 			this.send("pong")

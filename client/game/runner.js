@@ -86,6 +86,7 @@ function Runner(socket, container, config) {
 
 	var that = this
 	//TODO: when the client is ready to start, network.ready should be called
+	this.network.takeOverSocket()
 	this.network.ready(function(clockAdjustment) {
 		that.start(clockAdjustment)
 	})
@@ -112,6 +113,8 @@ Runner.prototype.start = function(clockAdjustment) {
 			that.eventqueue.push(lineevent)
 		}
 	}
+
+	// XXX: This is apparently a bit of a hack.
 	this.lasttime = performance.now() - clockAdjustment
 	this.loop();
 }
