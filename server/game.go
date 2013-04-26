@@ -11,6 +11,10 @@ type game struct {
 	ch      chan *message
 }
 
+func (g *game) load() {
+	sendToAll(LOAD) //TODO: send more interesting data
+}
+
 func (g *game) run() {
 	for mess := range g.ch {
 		g.handleMessage(mess)
