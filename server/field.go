@@ -1,5 +1,13 @@
 package server
 
+import (
+	"os"
+	"regexp"
+	"bufio"
+	"strconv"
+	"path/filepath"
+)
+
 type playfield struct {
 	Tiles          [][]int
 	unitsPerPlayer []int
@@ -28,22 +36,47 @@ func (p *playfield) calcUnitsPerPlayer() {
 }
 
 func readFieldsFromFolder(folder string) []*playfield {
-	//TODO: actual implementation
-	return []*playfield{
-		&playfield{
-			Tiles: [][]int{
-				[]int{0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-				[]int{0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-				[]int{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
-				[]int{0, 100, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 101, 0},
-				[]int{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
-				[]int{0, 100, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 101, 0},
-				[]int{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
-				[]int{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
-				[]int{0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-				[]int{0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-			},
-			unitsPerPlayer: []int{2, 2},
-		},
+	fo, err:= os.Open(folder)
+	d(err)
+	files, err := fo.Readdirnames(-1)
+	d(err)
+
+	ret := make([]*playfield, len(files))
+	for i := range ret {
+		ret[i] = readFieldFromFile(filepath.Join(folder, files[i]))
+	}
+
+	return ret
+}
+
+func readFieldFromFile(file string) *playfield {
+	fi, err := os.Open(file)
+	d(err)
+	defer fi.Close()
+
+	reader := bufio.NewReader(fi)
+	tile := regexp.MustCompile(`(\d+)`)
+
+	ret := make([][]int, 0, 256)
+
+	var line string
+	for err == nil {
+		line, err = reader.ReadString('\n')
+
+		match := tile.FindAllStringSubmatch(line, -1)
+		row := make([]int, len(match))
+		for i, m := range match {
+			num, _ := strconv.Atoi(m[1])
+			row[i] = num
+		}
+		ret = append(ret, row)
+	}
+
+	return &playfield{Tiles: ret}
+}
+
+func d(err interface{}) {
+	if err != nil {
+		panic(err)
 	}
 }
