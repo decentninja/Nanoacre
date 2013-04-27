@@ -129,6 +129,7 @@ function initializeGame(loadData) {
 			background: "#1D1D1D",
 			bullet: "#C82257",
 			selected: "#208BB5",
+			text: "#208BB5",
 			map: "#262626",
 		},
 		buttons: {
