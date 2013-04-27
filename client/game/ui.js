@@ -1,9 +1,9 @@
-function Ui(canvas_context, config, map) {
+function Ui(canvas_context, config, loadData) {
 	this.ctx = canvas_context
 	this.config = config
-	this.map = map
-	this.part_height = this.ctx.canvas.height / this.map.parts.length
-	this.part_width = this.ctx.canvas.width / this.map.parts[0].length
+	this.map = loadData.Field
+	this.part_height = this.ctx.canvas.height / this.map.Tiles.length
+	this.part_width = this.ctx.canvas.width / this.map.Tiles[0].length
 }
 
 Ui.prototype.render = function(deltatime, state) {
@@ -23,9 +23,9 @@ Ui.prototype.render = function(deltatime, state) {
 	}
 	this.ctx.fillStyle = this.config.colors.map
 	this.ctx.beginPath()
-	for(var i = 0; i < this.map.parts.length; i++) {
-		for(var j = 0; j < this.map.parts[0].length; j++) {
-			if(this.map.parts[i][j] == 1) {
+	for(var i = 0; i < this.map.Tiles.length; i++) {
+		for(var j = 0; j < this.map.Tiles[0].length; j++) {
+			if(this.map.Tiles[i][j] == 1) {
 				this.ctx.rect(j*this.part_width, i*this.part_height, this.part_width, this.part_height)
 			}
 		}

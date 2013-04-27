@@ -5,12 +5,15 @@ import (
 
 	"log"
 	"net/http"
+	"math/rand"
 )
 
 var waitingConnection = make(chan *player)
+var fields []*playfield
 
 func SetupSocketServer() {
 	http.Handle("/ws", websocket.Handler(newConnection))
+	fields = readFieldsFromFolder("maps")
 }
 
 func newConnection(ws *websocket.Conn) {
@@ -32,7 +35,7 @@ func newConnection(ws *websocket.Conn) {
 			ch:      p.ch,
 		}
 		log.Println("Starting a new game.")
-		g.load()
+		g.load(fields[rand.Intn(len(fields))])
 		g.run()
 	}
 }

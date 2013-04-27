@@ -1,25 +1,11 @@
-function Runner(socket, container, config) {
+function Runner(socket, container, config, loadData) {
 	var canvas = this.canvas = container.querySelector("canvas")
 	this.container = container
 	var canvas_context = canvas.getContext('2d')
 	this.config = config
 
-	var samplemap = {
-		name: "Valley of Darkness",
-		parts: [
-			[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-			[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-			[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-			[0,0,0,1,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0],
-			[0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0],
-			[0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0],
-			[0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,1,0,0,0],
-			[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-			[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-			[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-		],
-	}
-	var samplestate = {
+	//Should the state calculation really be here? Something in game or logic perhaps?
+	var samplestate = { //TODO: calculate actual state from loadData.Field.Tiles
 		nbullets: 1,
 		bullets: [
 			{
@@ -68,8 +54,8 @@ function Runner(socket, container, config) {
 
 	this.eventqueue = []
 
-	this.ui = new Ui(canvas_context, config, samplemap)
-	this.game = new Game(samplemap, samplestate, config, this.ui)
+	this.ui = new Ui(canvas_context, config, loadData)
+	this.game = new Game(loadData.Field, samplestate, config, this.ui)
 	if (socket)
 		this.network = new Network(socket, this.eventqueue, 10)
 	else
@@ -130,7 +116,7 @@ Runner.prototype.loop = function() {
 
 var runner; // for debugging
 
-function initializeGame() {
+function initializeGame(loadData) {
 	var config = {
 		colors: {
 			teams: [
@@ -150,20 +136,40 @@ function initializeGame() {
 			2: "move"
 		}
 	}
+	if (!loadData) {
+		loadData = {
+			Id: 0,
+			Field: {
+				Tiles: [
+					[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+					[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+					[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+					[0,0,0,1,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0],
+					[0,100,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,101,0],
+					[0,100,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,101,0],
+					[0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,1,0,0,0],
+					[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+					[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+					[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+				]
+			}
+		}
+	}
 	var container = document.querySelector(".game-container");
-	runner = new Runner(socket, container, config)
+	runner = new Runner(socket, container, config, loadData)
 	runner.run()
 }
 
 var socket = null;
 if (debug) {
-	initializeGame();
+	initializeGame(null);
 }
 else {
 	var wsServer = GetParams["ws"] || location.host;
 	socket = new WebSocket("ws://" + wsServer + "/ws")
 	socket.onmessage = function(e) {
-		if (e.data === "load")
-			initializeGame();
+		var loadData = JSON.parse(e.data)
+		console.log(loadData)
+		initializeGame(loadData)
 	}
 }

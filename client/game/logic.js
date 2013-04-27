@@ -18,15 +18,15 @@ function moveOutFromWalls(map, pos) {
 		return Math.min(a*a, b*b);
 	}
 
-	var ph = map.parts.length, pw = map.parts[0].length;
+	var ph = map.Tiles.length, pw = map.Tiles[0].length;
 	var px = Math.floor(pos.x / TILE_SIZE), py = Math.floor(pos.y / TILE_SIZE);
 	px = Math.min(Math.max(px, 0), pw-1);
 	py = Math.min(Math.max(py, 0), ph-1);
-	if (map.parts[py][px]) {
+	if (map.Tiles[py][px]) {
 		var available = [];
 		for (var i = 0; i < ph; ++i) {
 			for (var j = 0; j < pw; ++j) {
-				if (!map.parts[i][j]) {
+				if (!map.Tiles[i][j]) {
 					var d2 = min2(pos.x - TILE_SIZE * j, pos.x - TILE_SIZE * (j+1)) +
 						min2(pos.y - TILE_SIZE * i, pos.y - TILE_SIZE * (i+1));
 					available.push([d2, i, j]);
@@ -47,10 +47,10 @@ function moveOutFromWalls(map, pos) {
 // Check whether a position is free from wall collisions, in the most
 // inefficient possible way.
 function freespace(map, pos) {
-	var ph = map.parts.length, pw = map.parts[0].length;
+	var ph = map.Tiles.length, pw = map.Tiles[0].length;
 	for (var i = 0; i < ph; ++i) {
 		for (var j = 0; j < pw; ++j) {
-			if (map.parts[i][j]) {
+			if (map.Tiles[i][j]) {
 				if (i * TILE_SIZE - PLAYER_RADIUS <= pos.y && (i + 1) * TILE_SIZE + PLAYER_RADIUS >= pos.y &&
 					j * TILE_SIZE - PLAYER_RADIUS <= pos.x && (j + 1) * TILE_SIZE + PLAYER_RADIUS >= pos.x)
 				{

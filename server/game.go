@@ -11,8 +11,15 @@ type game struct {
 	ch      chan *message
 }
 
-func (g *game) load() {
-	g.sendToAll(LOAD) //TODO: send more interesting data
+type loadData struct {
+	Id int
+	Field *playfield
+}
+
+func (g *game) load(field *playfield) {
+	for i, p := range g.players {
+		p.sendJSON(loadData{i, field})
+	}
 }
 
 func (g *game) run() {
