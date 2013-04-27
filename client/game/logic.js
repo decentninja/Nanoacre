@@ -50,7 +50,7 @@ function freespace(map, pos) {
 	var ph = map.Tiles.length, pw = map.Tiles[0].length;
 	for (var i = 0; i < ph; ++i) {
 		for (var j = 0; j < pw; ++j) {
-			if (map.Tiles[i][j]) {
+			if (map.Tiles[i][j] == 1) {
 				if (i * TILE_SIZE - PLAYER_RADIUS <= pos.y && (i + 1) * TILE_SIZE + PLAYER_RADIUS >= pos.y &&
 					j * TILE_SIZE - PLAYER_RADIUS <= pos.x && (j + 1) * TILE_SIZE + PLAYER_RADIUS >= pos.x)
 				{
