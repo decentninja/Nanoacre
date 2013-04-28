@@ -11,22 +11,32 @@ var PLAYER_RADIUS = 200;
 
 var TEST_DIST = 100;
 
-function moveOutFromWalls(map, pos) {
+window.Logic = function(map) {
+	this.map = map;
+	this.setupPathfinding();
+};
+
+Logic.prototype.destroy = function() {
+	this.clearPathfinding();
+};
+
+Logic.prototype.moveOutFromWalls = function(pos) {
 	function min2(a, b) {
 		if (a * b < 0)
 			return 0;
 		return Math.min(a*a, b*b);
 	}
 
+	var map = this.map;
 	var ph = map.Tiles.length, pw = map.Tiles[0].length;
 	var px = Math.floor(pos.x / TILE_SIZE), py = Math.floor(pos.y / TILE_SIZE);
 	px = Math.min(Math.max(px, 0), pw-1);
 	py = Math.min(Math.max(py, 0), ph-1);
-	if (map.Tiles[py][px]) {
+	if (map.Tiles[py][px] == 1) {
 		var available = [];
 		for (var i = 0; i < ph; ++i) {
 			for (var j = 0; j < pw; ++j) {
-				if (!map.Tiles[i][j]) {
+				if (map.Tiles[i][j] != 1) {
 					var d2 = min2(pos.x - TILE_SIZE * j, pos.x - TILE_SIZE * (j+1)) +
 						min2(pos.y - TILE_SIZE * i, pos.y - TILE_SIZE * (i+1));
 					available.push([d2, i, j]);
@@ -46,7 +56,8 @@ function moveOutFromWalls(map, pos) {
 
 // Check whether a position is free from wall collisions, in the most
 // inefficient possible way.
-function freespace(map, pos) {
+Logic.prototype.freespace = function(pos) {
+	var map = this.map;
 	var ph = map.Tiles.length, pw = map.Tiles[0].length;
 	for (var i = 0; i < ph; ++i) {
 		for (var j = 0; j < pw; ++j) {
@@ -60,87 +71,51 @@ function freespace(map, pos) {
 		}
 	}
 	return true;
-}
+};
 
-function moveUnit(map, u) {
+Logic.prototype.moveUnit = function(u) {
 	var dirs = ['x', 'y'];
-	if (!("wallmove" in u.position)) {
-		var dist = 0;
-		dirs.forEach(function(dir) {
-			var d = (u.target[dir] - u.position[dir]);
-			dist += d*d;
-		});
-		dist = Math.sqrt(dist);
+	if (!u.path)
+		return;
 
-		var npos = {}, done = (dist < PLAYER_SPEED);
-		if (done) {
-			if (dist === 0)
-				return;
-			if (freespace(map, u.target))
-				u.position = u.target;
-			else
-				u.target = u.position;
-			return;
-		}
-		dirs.forEach(function(dir) {
-			var d = u.target[dir] - u.position[dir];
-			npos[dir] = u.position[dir] + d / dist * PLAYER_SPEED;
-		});
-		// XXX: What about collisions with units? Just stop moving?
-		if (freespace(map, npos)) {
-			u.position = npos;
-		}
-		else {
-			var rel = {};
-			dirs.forEach(function(dir) {
-				var d = u.target[dir] - u.position[dir];
-				rel[dir] = (d > 0 ? 1 : -1);
-			});
-
-			npos = deepCopy(u.position);
-			var dx = u.target.x - u.position.x;
-			npos.x += dx / dist * PLAYER_SPEED;
-			rel.dir = (freespace(map, npos) ? "x" : "y");
-			u.position.wallmove = rel;
-			console.log("Setting wallmove in " + rel.dir);
-		}
+	// TODO: We might want to do some collision testing here. Currently it works
+	// because the path-finding always gives us perfect paths, but that might be
+	// a bad thing to rely upon (and if we change it or add new types of
+	// collisions it might become necessary).
+	var target = u.path[0];
+	var dist = 0;
+	dirs.forEach(function(dir) {
+		var d = (target[dir] - u.position[dir]);
+		dist += d*d;
+	});
+	dist = Math.sqrt(dist);
+	if (dist < PLAYER_SPEED) {
+		u.position = target;
+		u.path.shift();
+		if (!u.path.length)
+			delete u.path;
+		return;
 	}
 
-	if ("wallmove" in u.position) {
-		var rel = u.position.wallmove;
-		var testPos = {x: u.position.x, y: u.position.y};
-		dirs.forEach(function(dir) {
-			if (dir !== rel.dir)
-				testPos[dir] += rel[dir] * TEST_DIST;
-		});
-		if (freespace(map, testPos)) {
-			console.log("Unset wallmove");
-			u.position = testPos;
-		}
-		else {
-			var npos = deepCopy(u.position);
-			npos[rel.dir] += rel[rel.dir] * PLAYER_SPEED;
-			if (freespace(map, npos)) {
-				u.position = npos;
-			}
-			else {
-				console.log("Unable to move anywhere, resetting wallmove");
-				delete u.position.wallmove;
-				u.target = u.position;
-			}
-		}
-	}
-}
+	var npos = {};
+	dirs.forEach(function(dir) {
+		var d = target[dir] - u.position[dir];
+		npos[dir] = u.position[dir] + d / dist * PLAYER_SPEED;
+	});
+	u.position = npos;
+};
 
-function step(map, state, events) {
+Logic.prototype.step = function(state, events) {
+	var map = this.map, self = this;
 	state = deepCopy(state);
 	events.forEach(function(ev) {
 		switch(ev.type) {
 			case "move":
 				state.units.forEach(function(u) {
 					if (u.id === ev.who) {
-						delete u.position.wallmove;
-						u.target = moveOutFromWalls(map, ev.towards);
+						var target = self.moveOutFromWalls(ev.towards);
+						u.path = self.pathfind(u.position, target);
+						console.log("Pathfinding returned: ", u.path);
 					}
 				});
 				break;
@@ -174,7 +149,7 @@ function step(map, state, events) {
 		b.position.x += b.direction.x * BULLET_SPEED;
 		b.position.y += b.direction.y * BULLET_SPEED;
 	});
-	state.units.forEach(moveUnit.bind(this, map));
+	state.units.forEach(this.moveUnit.bind(this));
 	state.units.forEach(function(u) {
 		if(u.shooting_cooldown) 
 			--u.shooting_cooldown;
@@ -182,7 +157,119 @@ function step(map, state, events) {
 	return state;
 }
 
-window.Logic = {
-	step: step,
+
+// Path finding; talks to compiled code. Beware of dragons.
+
+Logic.prototype.pathfindingComputePointsAndRects = function(points, rects) {
+	var map = this.map;
+	var ph = map.Tiles.length, pw = map.Tiles[0].length;
+	for (var y = 0; y < ph; ++y) {
+		for (var x = 0; x < pw; ++x) {
+			if (map.Tiles[y][x] == 1) {
+				// Always push a rect.
+				var x1 = TILE_SIZE * x - PLAYER_RADIUS;
+				var x2 = TILE_SIZE * (x + 1) + PLAYER_RADIUS;
+				var y1 = TILE_SIZE * y - PLAYER_RADIUS;
+				var y2 = TILE_SIZE * (y + 1) + PLAYER_RADIUS;
+				rects.push([
+					{x: x1, y: y1},
+					{x: x2, y: y1},
+					{x: x1, y: y2},
+					{x: x2, y: y2}
+				]);
+
+				// And push points for all corners.
+				for (var dx = -1; dx <= 1; dx += 2) {
+					for (var dy = -1; dy <= 1; dy += 2) {
+						var nx = x + dx, ny = y + dy;
+						if (nx < 0 || ny < 0 || nx >= pw || ny >= ph)
+							continue;
+						if (map.Tiles[ny][nx] == 1 || map.Tiles[ny][x] == 1 || map.Tiles[y][nx] == 1)
+							continue;
+						var realx = (x + (dx+1)/2) * TILE_SIZE + dx * PLAYER_RADIUS;
+						var realy = (y + (dy+1)/2) * TILE_SIZE + dy * PLAYER_RADIUS;
+						points.push({x: realx, y: realy});
+					}
+				}
+			}
+		}
+	}
 };
+
+function pushArrayToStack(obj) {
+	var mem = Runtime.stackAlloc(obj.length * 4);
+	for (var i = 0; i < obj.length; ++i)
+		setValue(mem + i*4, obj[i], 'i32');
+	return mem;
+}
+
+Logic.prototype.pathfind = function(from, to) {
+	var startStack = Runtime.stackSave();
+	try {
+		var ptrOutLen = Runtime.stackAlloc(4);
+		var ptrPtrOut = Runtime.stackAlloc(4);
+		var ret = Module.ccall('pathfind',
+			'number',
+			['number', 'number', 'number', 'number', 'number', 'number', 'number'],
+			[this.ptrMap, from.x, from.y, to.x, to.y, ptrOutLen, ptrPtrOut]);
+		if (ret) {
+			var len = getValue(ptrOutLen, 'i32');
+			var ptrOut = getValue(ptrPtrOut, 'i32');
+			var path = [];
+			for (var i = 0, ind = 0; i < len; ++i) {
+				path.push({
+					x: getValue(ptrOut + 4 * (ind++), 'i32'),
+					y: getValue(ptrOut + 4 * (ind++), 'i32')
+				});
+			}
+			Module.ccall('free_path', 'number', ['number'], [ptrOut]);
+			return path;
+		}
+		else {
+			throw new Error("No path found");
+		}
+	}
+	finally {
+		Runtime.stackRestore(startStack);
+	}
+};
+
+Logic.prototype.setupPathfinding = function() {
+	var points = [], rects = [];
+	this.pathfindingComputePointsAndRects(points, rects);
+
+	var flatPoints = [], flatRects = [];
+	points.forEach(function(p) {
+		flatPoints.push(p.x);
+		flatPoints.push(p.y);
+	});
+	rects.forEach(function(corners) {
+		for (var i = 0; i < 4; ++i) {
+			flatRects.push(corners[i].x);
+			flatRects.push(corners[i].y);
+		}
+	});
+
+	var startStack = Runtime.stackSave();
+	var ptrPoints = pushArrayToStack(flatPoints);
+	var ptrRects = pushArrayToStack(flatRects);
+	var ptrMap = Module.ccall('setup_pathfinding',
+		'number',
+		['number', 'number', 'number', 'number'],
+		[points.length, ptrPoints, rects.length, ptrRects]
+	);
+	Runtime.stackRestore(startStack);
+
+	this.ptrMap = ptrMap;
+};
+
+Logic.prototype.clearPathfinding = function() {
+	Module.ccall('clear_pathfinding',
+		'number',
+		['number'],
+		[this.ptrMap]
+	);
+	this.ptrMap = null;
+};
+
 })();

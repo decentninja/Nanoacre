@@ -8,6 +8,10 @@ function Game(map, initialState, config, ui) {
 	this.timeBehind = 0
 }
 
+Game.prototype.destroy = function() {
+	this.timeline.destroy();
+};
+
 Game.prototype.step = function(deltatime, eventqueue) {
 	while (eventqueue.length > 0) {
 		this.timeline.insert(eventqueue.pop())
@@ -19,8 +23,8 @@ Game.prototype.step = function(deltatime, eventqueue) {
 		this.timeline.step()
 	}
 	this.ui.render(deltatime, this.timeline.getCurrentState())
-}
+};
 
 Game.prototype.getNextFrame = function() {
 	return this.timeline.getNextFrame();
-}
+};

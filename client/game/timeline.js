@@ -9,10 +9,15 @@ var MASK = BUFFER_SIZE - 1;
 window.Timeline = function(map, initialState) {
 	this.curTime = 0;
 	this.map = map;
+	this.logic = new Logic(map);
 	this.events = [];
 	this.states = new Array(BUFFER_SIZE);
 	this.states[0] = initialState;
-}
+};
+
+Timeline.prototype.destroy = function() {
+	this.logic.destroy();
+};
 
 Timeline.prototype.step = function() {
 	this._progress(this.curTime);
@@ -20,7 +25,7 @@ Timeline.prototype.step = function() {
 };
 
 Timeline.prototype._progress = function(prevT) {
-	var newState = Logic.step(this.map, this.states[prevT & MASK], this.events[prevT + 1] || []);
+	var newState = this.logic.step(this.states[prevT & MASK], this.events[prevT + 1] || []);
 	this.states[(prevT + 1) & MASK] = newState;
 }
 
