@@ -32,8 +32,8 @@ Logic.prototype.initialState = function() {
 			var possibleteam = this.map.Tiles[i][j] - 100;
 			if(possibleteam >= 0) {
 				var position = {
-					x: j * TILE_SIZE + PLAYER_RADIUS,
-					y: i * TILE_SIZE + PLAYER_RADIUS,
+					x: j * TILE_SIZE + 2 * PLAYER_RADIUS,
+					y: i * TILE_SIZE + 2 * PLAYER_RADIUS,
 				};
 				state.units.push({
 					id: state.nunits,
