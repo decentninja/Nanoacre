@@ -1,12 +1,13 @@
-var BULLET_LENGTH = 50
-var PLAYER_SIZE = 10
+var BULLET_LENGTH = 50;
+var PLAYER_SIZE = 10;
+
+var TILE_RENDER_SIZE = 40;
+var UI_RENDER_FACTOR = TILE_RENDER_SIZE / TILE_SIZE;
 
 function Ui(canvas_context, config, loadData) {
 	this.ctx = canvas_context
 	this.config = config
 	this.map = loadData.Field
-	this.part_height = this.ctx.canvas.height / this.map.height
-	this.part_width = this.ctx.canvas.width / this.map.width
 }
 
 Ui.prototype.render = function(deltatime, state) {
@@ -16,8 +17,8 @@ Ui.prototype.render = function(deltatime, state) {
 	for(var i = 0; i < state.bullets.length; i++) {
 		var bullet = state.bullets[i]
 		this.ctx.beginPath()
-		var x = bullet.position.x * this.part_width / TILE_SIZE;
-		var y = bullet.position.y * this.part_height / TILE_SIZE;
+		var x = bullet.position.x * UI_RENDER_FACTOR;
+		var y = bullet.position.y * UI_RENDER_FACTOR;
 		this.ctx.moveTo(x, y)
 		this.ctx.lineTo(
 			x + BULLET_LENGTH * bullet.direction.x,
@@ -29,7 +30,7 @@ Ui.prototype.render = function(deltatime, state) {
 	for(var i = 0; i < this.map.Tiles.length; i++) {
 		for(var j = 0; j < this.map.Tiles[0].length; j++) {
 			if(this.map.Tiles[i][j] == 1) {
-				this.ctx.rect(j*this.part_width, i*this.part_height, this.part_width, this.part_height)
+				this.ctx.rect(j*TILE_RENDER_SIZE, i*TILE_RENDER_SIZE, TILE_RENDER_SIZE, TILE_RENDER_SIZE)
 			}
 		}
 	}
@@ -38,9 +39,9 @@ Ui.prototype.render = function(deltatime, state) {
 		var unit = state.units[i]
 		this.ctx.fillStyle = this.config.colors.teams[unit.owning_player]
 		this.ctx.beginPath()
-		var x = unit.position.x * this.part_width / TILE_SIZE;
-		var y = unit.position.y * this.part_height / TILE_SIZE;
-		this.ctx.arc(x, y, PLAYER_SIZE, 0, Math.PI*2, false)
+		var x = unit.position.x * UI_RENDER_FACTOR;
+		var y = unit.position.y * UI_RENDER_FACTOR;
+		this.ctx.arc(x, y, PLAYER_RADIUS * UI_RENDER_FACTOR, 0, Math.PI*2, false)
 		this.ctx.fill()
 	}
 }
@@ -51,8 +52,8 @@ Ui.prototype.handleMousedown = function(x, y, button, game) {
 		type: this.config.buttons[button],
 		who: 0,
 		towards: {
-			x: (x * TILE_SIZE / this.part_width) | 0,
-			y: (y * TILE_SIZE / this.part_height) | 0
+			x: (x / UI_RENDER_FACTOR) | 0,
+			y: (y / UI_RENDER_FACTOR) | 0
 		}
 	}
 	return ev

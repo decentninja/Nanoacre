@@ -1,11 +1,9 @@
-var TILE_RENDER_SIZE = 40
-
 function Runner(socket, container, config, loadData) {
 	var canvas = this.canvas = container.querySelector("canvas")
 	this.container = container
 	var canvas_context = canvas.getContext('2d')
 	this.config = config
-	
+
 	loadData.Field.width = loadData.Field.Tiles[0].length
 	loadData.Field.height = loadData.Field.Tiles.length
 	canvas.width = loadData.Field.width * TILE_RENDER_SIZE
@@ -14,7 +12,7 @@ function Runner(socket, container, config, loadData) {
 	if(canvas.width > container.offsetWidth) {
 		canvas.style.setProperty("width", "100%")
 	}
-	
+
 	this.eventqueue = []
 
 	this.ui = new Ui(canvas_context, config, loadData)
