@@ -83,6 +83,12 @@ Logic.prototype.moveOutFromWalls = function(pos) {
 	if (!px || map.Tiles[py][px-1] == 1) pos.x = Math.max(pos.x, px * TILE_SIZE + PLAYER_RADIUS);
 	if (py+1 === ph || map.Tiles[py+1][px] == 1) pos.y = Math.min(pos.y, (py+1) * TILE_SIZE - PLAYER_RADIUS);
 	if (px+1 === pw || map.Tiles[py][px+1] == 1) pos.x = Math.min(pos.x, (px+1) * TILE_SIZE - PLAYER_RADIUS);
+
+	// The above handles 99% of all cases, but not corners. The logic for that
+	// is awful, so just hack around it.
+	if (!this.freespace(pos))
+		pos = {x: (px+1/2) * TILE_SIZE, y: (py+1/2) * TILE_SIZE};
+
 	return pos;
 }
 
@@ -94,8 +100,8 @@ Logic.prototype.freespace = function(pos) {
 	for (var i = 0; i < ph; ++i) {
 		for (var j = 0; j < pw; ++j) {
 			if (map.Tiles[i][j] == 1) {
-				if (i * TILE_SIZE - PLAYER_RADIUS <= pos.y && (i + 1) * TILE_SIZE + PLAYER_RADIUS >= pos.y &&
-					j * TILE_SIZE - PLAYER_RADIUS <= pos.x && (j + 1) * TILE_SIZE + PLAYER_RADIUS >= pos.x)
+				if (i * TILE_SIZE - PLAYER_RADIUS < pos.y && (i + 1) * TILE_SIZE + PLAYER_RADIUS > pos.y &&
+					j * TILE_SIZE - PLAYER_RADIUS < pos.x && (j + 1) * TILE_SIZE + PLAYER_RADIUS > pos.x)
 				{
 					return false;
 				}
@@ -145,6 +151,7 @@ Logic.prototype.step = function(state, events) {
 			case "move":
 				state.units.forEach(function(u) {
 					if (u.id === ev.who) {
+						u.position = self.moveOutFromWalls(u.position);
 						var target = self.moveOutFromWalls(ev.towards);
 						u.path = self.pathfind(u.position, target);
 					}
@@ -257,7 +264,7 @@ Logic.prototype.pathfind = function(from, to) {
 			return path;
 		}
 		else {
-			throw new Error("No path found");
+			console.error("No path found", from, to);
 		}
 	}
 	finally {
