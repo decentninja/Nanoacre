@@ -6,13 +6,13 @@
 var BUFFER_SIZE = 512;
 var MASK = BUFFER_SIZE - 1;
 
-window.Timeline = function(map, initialState) {
+window.Timeline = function(map) {
 	this.curTime = 0;
 	this.map = map;
 	this.logic = new Logic(map);
 	this.events = [];
 	this.states = new Array(BUFFER_SIZE);
-	this.states[0] = initialState;
+	this.states[0] = this.logic.initialState();
 };
 
 Timeline.prototype.destroy = function() {

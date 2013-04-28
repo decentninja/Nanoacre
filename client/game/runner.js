@@ -14,59 +14,11 @@ function Runner(socket, container, config, loadData) {
 	if(canvas.width > container.offsetWidth) {
 		canvas.style.setProperty("width", "100%")
 	}
-
-	//Should the state calculation really be here? Something in game or logic perhaps?
-	var samplestate = { //TODO: calculate actual state from loadData.Field.Tiles
-		nbullets: 1,
-		bullets: [
-			{
-				id: 0,
-				owning_player: 0,
-				position: {
-					x: 2200,
-					y: 2200,
-				},
-				direction: {
-					x: 0.707106781,
-					y: 0.707106781,
-				}
-			},
-		],
-		nunits: 2,
-		units: [
-			{
-				id: 0,
-				owning_player: 0,
-				position: {
-					x: 2000,
-					y: 2000
-				},
-				target: {
-					x: 2000,
-					y: 2000
-				},
-				shooting_cooldown: 0
-			},
-			{
-				id: 1,
-				owning_player: 1,
-				position: {
-					x: 2000,
-					y: 2000
-				},
-				target: {
-					x: 8000,
-					y: 8000
-				},
-				shooting_cooldown: 0
-			},
-		],
-	}
-
+	
 	this.eventqueue = []
 
 	this.ui = new Ui(canvas_context, config, loadData)
-	this.game = new Game(loadData.Field, samplestate, config, this.ui)
+	this.game = new Game(loadData.Field, config, this.ui)
 	if (socket)
 		this.network = new Network(socket, this.eventqueue, 10)
 	else

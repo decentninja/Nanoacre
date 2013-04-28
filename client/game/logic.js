@@ -20,6 +20,35 @@ Logic.prototype.destroy = function() {
 	this.clearPathfinding();
 };
 
+Logic.prototype.initialState = function() {
+	var state = {
+		nbullet: 0,
+		bullets: [],
+		nunits: 0,
+		units: [],
+	};
+	for(var i = 0; i < this.map.height; i++) {
+		for(var j = 0; j < this.map.width; j++) {
+			var possibleteam = this.map.Tiles[i][j] - 100;
+			if(possibleteam >= 0) {
+				var position = {
+					x: j * TILE_SIZE + PLAYER_RADIUS,
+					y: i * TILE_SIZE + PLAYER_RADIUS,
+				};
+				state.units.push({
+					id: state.nunits,
+					owning_player: possibleteam,
+					position: position,
+					target: position,
+					shooting_cooldown: 0,
+				})
+				state.nunits++;
+			}
+		}
+	}
+	return state
+}
+
 Logic.prototype.moveOutFromWalls = function(pos) {
 	function min2(a, b) {
 		if (a * b < 0)

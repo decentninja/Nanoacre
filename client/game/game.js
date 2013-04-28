@@ -1,10 +1,10 @@
 var TIME_STEP = 16;
 
-function Game(map, initialState, config, ui) {
+function Game(map, config, ui) {
 	this.map = map
 	this.config = config
 	this.ui = ui
-	this.timeline = new Timeline(map, initialState)
+	this.timeline = new Timeline(map)
 	this.timeBehind = 0
 }
 
