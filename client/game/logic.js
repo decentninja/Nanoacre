@@ -144,7 +144,6 @@ Logic.prototype.step = function(state, events) {
 					if (u.id === ev.who) {
 						var target = self.moveOutFromWalls(ev.towards);
 						u.path = self.pathfind(u.position, target);
-						console.log("Pathfinding returned: ", u.path);
 					}
 				});
 				break;
