@@ -1,19 +1,8 @@
-var TILE_RENDER_SIZE = 40
-
 function Runner(socket, container, config, loadData) {
 	var canvas = this.canvas = container.querySelector("canvas")
 	this.container = container
 	var canvas_context = canvas.getContext('2d')
 	this.config = config
-
-	loadData.Field.width = loadData.Field.Tiles.length
-	loadData.Field.height = loadData.Field.Tiles[0].length
-	canvas.width = loadData.Field.width * TILE_RENDER_SIZE
-	canvas.height = loadData.Field.height * TILE_RENDER_SIZE
-	this.real_map_width = canvas.width
-	if(canvas.width > container.offsetWidth) {
-		canvas.style.setProperty("width", "100%")
-	}
 
 	//Should the state calculation really be here? Something in game or logic perhaps?
 	var samplestate = { //TODO: calculate actual state from loadData.Field.Tiles
@@ -103,11 +92,8 @@ Runner.prototype.startLoop = function(clockAdjustment) {
 		// If we use jQuery, this is just (ev.pageX - $(ev).offset().left), etc.
 		var docElem = document.documentElement
 		var bclr = that.canvas.getBoundingClientRect()
-		var scale = bclr.width / that.real_map_width 
 		var x = ev.pageX - Math.round(bclr.left + window.pageXOffset - docElem.clientTop)
 		var y = ev.pageY - Math.round(bclr.top + window.pageYOffset - docElem.clientLeft)
-		x /= scale
-		y /= scale
 		lineevent = that.ui.handleMousedown(x, y, ev.button, that.game)
 		if (lineevent) {
 			that.network.send(lineevent)
