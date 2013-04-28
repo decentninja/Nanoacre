@@ -6,7 +6,6 @@ body {
 }
 
 .content {
-	width: 1000px;
 	margin: auto;
 }
 
@@ -30,6 +29,10 @@ body {
 	text-align: center;
 	transition: all 3s;
 	font-weight: 400;
+}
+
+.canvas-wrapper {
+	text-align: center;
 }
 
 .canvas {
