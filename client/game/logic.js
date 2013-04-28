@@ -7,7 +7,7 @@ var BULLET_SPEED = 200;
 var SHOOTING_COOLDOWN = 0.5 * 60;
 
 var PLAYER_SPEED = 100;
-var PLAYER_RADIUS = 200;
+var PLAYER_RADIUS = 200;	// Not exact?
 
 var TEST_DIST = 100;
 

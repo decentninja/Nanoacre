@@ -1,3 +1,6 @@
+var BULLET_LENGTH = 50
+var PLAYER_SIZE = 10
+
 function Ui(canvas_context, config, loadData) {
 	this.ctx = canvas_context
 	this.config = config
@@ -17,8 +20,8 @@ Ui.prototype.render = function(deltatime, state) {
 		var y = bullet.position.y * this.part_height / TILE_SIZE;
 		this.ctx.moveTo(x, y)
 		this.ctx.lineTo(
-			x + 50*bullet.direction.x,
-			y + 50*bullet.direction.y)
+			x + BULLET_LENGTH * bullet.direction.x,
+			y + BULLET_LENGTH * bullet.direction.y)
 		this.ctx.stroke()
 	}
 	this.ctx.fillStyle = this.config.colors.map
@@ -37,7 +40,7 @@ Ui.prototype.render = function(deltatime, state) {
 		this.ctx.beginPath()
 		var x = unit.position.x * this.part_width / TILE_SIZE;
 		var y = unit.position.y * this.part_height / TILE_SIZE;
-		this.ctx.arc(x, y, 10, 0, Math.PI*2, false)
+		this.ctx.arc(x, y, PLAYER_SIZE, 0, Math.PI*2, false)
 		this.ctx.fill()
 	}
 }
