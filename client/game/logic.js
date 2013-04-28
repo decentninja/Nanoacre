@@ -8,9 +8,6 @@ var BULLET_SPEED = 200;
 var SHOOTING_COOLDOWN = 0.5 * 60;
 
 var PLAYER_SPEED = 100;
-var PLAYER_RADIUS = 200;	// Not exact?
-
-var TEST_DIST = 100;
 
 window.Logic = function(map) {
 	this.map = map;
@@ -51,6 +48,7 @@ Logic.prototype.initialState = function() {
 }
 
 Logic.prototype.moveOutFromWalls = function(pos) {
+	pos = deepCopy(pos);
 	function min2(a, b) {
 		if (a * b < 0)
 			return 0;
@@ -59,9 +57,10 @@ Logic.prototype.moveOutFromWalls = function(pos) {
 
 	var map = this.map;
 	var ph = map.Tiles.length, pw = map.Tiles[0].length;
-	var px = Math.floor(pos.x / TILE_SIZE), py = Math.floor(pos.y / TILE_SIZE);
-	px = Math.min(Math.max(px, 0), pw-1);
-	py = Math.min(Math.max(py, 0), ph-1);
+	var opx = Math.floor(pos.x / TILE_SIZE), opy = Math.floor(pos.y / TILE_SIZE);
+	opx = Math.min(Math.max(opx, 0), pw-1);
+	opy = Math.min(Math.max(opy, 0), ph-1);
+	var px = opx, py = opy;
 	if (map.Tiles[py][px] == 1) {
 		var available = [];
 		for (var i = 0; i < ph; ++i) {
@@ -80,8 +79,11 @@ Logic.prototype.moveOutFromWalls = function(pos) {
 		py = best[1];
 		px = best[2];
 	}
-	// XXX: We shouldn't center this...
-	return {x: (px + 1/2) * TILE_SIZE, y: (py + 1/2) * TILE_SIZE};
+	if (!py || map.Tiles[py-1][px] == 1) pos.y = Math.max(pos.y, py * TILE_SIZE + PLAYER_RADIUS);
+	if (!px || map.Tiles[py][px-1] == 1) pos.x = Math.max(pos.x, px * TILE_SIZE + PLAYER_RADIUS);
+	if (py+1 === ph || map.Tiles[py+1][px] == 1) pos.y = Math.min(pos.y, (py+1) * TILE_SIZE - PLAYER_RADIUS);
+	if (px+1 === pw || map.Tiles[py][px+1] == 1) pos.x = Math.min(pos.x, (px+1) * TILE_SIZE - PLAYER_RADIUS);
+	return pos;
 }
 
 // Check whether a position is free from wall collisions, in the most
