@@ -15,15 +15,6 @@ function Runner(socket, container, config, loadData) {
 		canvas.style.setProperty("width", "100%")
 	}
 
-	loadData.Field.width = loadData.Field.Tiles.length
-	loadData.Field.height = loadData.Field.Tiles[0].length
-	canvas.width = loadData.Field.width * TILE_RENDER_SIZE
-	canvas.height = loadData.Field.height * TILE_RENDER_SIZE
-	this.real_map_width = canvas.width
-	if(canvas.width > container.offsetWidth) {
-		canvas.style.setProperty("width", "100%")
-	}
-
 	//Should the state calculation really be here? Something in game or logic perhaps?
 	var samplestate = { //TODO: calculate actual state from loadData.Field.Tiles
 		nbullets: 1,
