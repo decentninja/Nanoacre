@@ -2,8 +2,8 @@ function Ui(canvas_context, config, loadData) {
 	this.ctx = canvas_context
 	this.config = config
 	this.map = loadData.Field
-	this.part_height = this.ctx.canvas.height / this.map.Tiles.length
-	this.part_width = this.ctx.canvas.width / this.map.Tiles[0].length
+	this.part_height = this.ctx.canvas.height / this.map.height
+	this.part_width = this.ctx.canvas.width / this.map.width
 }
 
 Ui.prototype.render = function(deltatime, state) {

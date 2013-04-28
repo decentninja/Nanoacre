@@ -6,7 +6,6 @@ body {
 }
 
 .content {
-	width: 1000px;
 	margin: auto;
 }
 
@@ -32,8 +31,13 @@ body {
 	font-weight: 400;
 }
 
+.canvas-wrapper {
+	text-align: center;
+}
+
 .canvas {
 	background-color: #1D1D1D;
+	height: 100%;
 }
 
 .fullscreen-container:-moz-full-screen {
