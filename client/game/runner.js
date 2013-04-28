@@ -9,9 +9,16 @@ function Runner(socket, container, config, loadData) {
 	canvas.width = loadData.Field.width * TILE_RENDER_SIZE
 	canvas.height = loadData.Field.height * TILE_RENDER_SIZE
 	this.real_map_width = canvas.width
-	if(canvas.width > container.offsetWidth) {
-		canvas.style.setProperty("width", "100%")
+	
+	function mayresize() {
+		if(canvas.width > container.offsetWidth) {
+			canvas.style.setProperty("width", "100%")
+		} else {
+			canvas.style.setProperty("width", "")
+		}
 	}
+	mayresize()
+	window.onresize = mayresize
 
 	this.eventqueue = []
 
