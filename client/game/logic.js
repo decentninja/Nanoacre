@@ -1,14 +1,14 @@
 var TILE_SIZE = 1024;
 var PLAYER_RADIUS = 256;
 
-var SHOOTING_COOLDOWN = 0.5 * 60;
+var SHOOTING_COOLDOWN = 1 * 60;
 
 ;(function() {
 "use strict";
 
-var BULLET_SPEED = 200;
+var BULLET_SPEED = 175;
 
-var PLAYER_SPEED = 100;
+var PLAYER_SPEED = 50;
 
 window.Logic = function(map) {
 	this.map = map;
