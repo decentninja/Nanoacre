@@ -1,5 +1,7 @@
 var BULLET_LENGTH = 50;
+var BULLET_WIDTH = 3;
 var PLAYER_SIZE = 10;
+var SELECTED_WIDTH = 3;
 
 var TILE_RENDER_SIZE = 40;
 var UI_RENDER_FACTOR = TILE_RENDER_SIZE / TILE_SIZE;
@@ -27,7 +29,7 @@ Ui.prototype.registerInitialUnits = function(units) {
 Ui.prototype.render = function(deltatime, state) {
 	this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 	this.ctx.strokeStyle = this.config.colors.bullet
-	this.ctx.lineWidth = 3;
+	this.ctx.lineWidth = BULLET_WIDTH;
 	for(var i = 0; i < state.bullets.length; i++) {
 		var bullet = state.bullets[i]
 		this.ctx.beginPath()
@@ -57,6 +59,11 @@ Ui.prototype.render = function(deltatime, state) {
 		var y = unit.position.y * UI_RENDER_FACTOR;
 		this.ctx.arc(x, y, PLAYER_RADIUS * UI_RENDER_FACTOR, 0, Math.PI*2, false)
 		this.ctx.fill()
+		if (this.selection.indexOf(unit.id) != -1) {
+			this.ctx.lineWidth = SELECTED_WIDTH
+			this.ctx.strokeStyle = this.config.colors.selected
+			this.ctx.stroke()
+		}
 	}
 }
 
