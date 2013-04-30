@@ -87,7 +87,7 @@ Logic.prototype.moveOutFromWalls = function(pos) {
 
 	// The above handles 99% of all cases, but not corners. The logic for that
 	// is awful, so just hack around it.
-	if (!this.freespace(pos))
+	if (!this.freespace(pos, PLAYER_RADIUS))
 		pos = {x: (px+1/2) * TILE_SIZE, y: (py+1/2) * TILE_SIZE};
 
 	return pos;
@@ -95,14 +95,14 @@ Logic.prototype.moveOutFromWalls = function(pos) {
 
 // Check whether a position is free from wall collisions, in the most
 // inefficient possible way.
-Logic.prototype.freespace = function(pos) {
+Logic.prototype.freespace = function(pos, radius) {
 	var map = this.map;
 	var ph = map.Tiles.length, pw = map.Tiles[0].length;
 	for (var i = 0; i < ph; ++i) {
 		for (var j = 0; j < pw; ++j) {
 			if (map.Tiles[i][j] == 1) {
-				if (i * TILE_SIZE - PLAYER_RADIUS < pos.y && (i + 1) * TILE_SIZE + PLAYER_RADIUS > pos.y &&
-					j * TILE_SIZE - PLAYER_RADIUS < pos.x && (j + 1) * TILE_SIZE + PLAYER_RADIUS > pos.x)
+				if (i * TILE_SIZE - radius < pos.y && (i + 1) * TILE_SIZE + radius > pos.y &&
+					j * TILE_SIZE - radius < pos.x && (j + 1) * TILE_SIZE + radius > pos.x)
 				{
 					return false;
 				}
@@ -200,7 +200,7 @@ Logic.prototype.step = function(state, events) {
 		if(b.position.x < 0 || b.position.x > map.width* TILE_SIZE || b.position.y < 0 || b.position.y > map.height*TILE_SIZE) {
 			die = true;
 		}
-		if(!self.freespace(b.position)) {
+		if(!self.freespace(b.position, 0)) {
 			die = true
 		}
 		return !die;
