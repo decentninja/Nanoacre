@@ -122,7 +122,7 @@ function initializeGame(loadData) {
 		buttons: {
 			0: "fire",
 			2: "move"
-		}
+		},
 	}
 	var container = document.querySelector(".game-container");
 	runner = new Runner(socket, container, config, loadData)

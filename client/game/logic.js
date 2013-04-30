@@ -187,6 +187,10 @@ Logic.prototype.step = function(state, events) {
 	state.bullets.forEach(function(b) {
 		b.position.x += b.direction.x * BULLET_SPEED;
 		b.position.y += b.direction.y * BULLET_SPEED;
+		state.units = state.units.filter(function(u) {
+			var distance = Math.sqrt(Math.pow(b.position.x - u.position.x, 2) + Math.pow(b.position.y - u.position.y, 2))
+			return !((b.owning_player != u.owning_player) && distance <= PLAYER_RADIUS);
+		});
 	});
 	state.units.forEach(this.moveUnit.bind(this));
 	state.units.forEach(function(u) {
