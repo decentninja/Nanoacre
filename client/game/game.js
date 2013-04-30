@@ -5,6 +5,7 @@ function Game(map, config, ui) {
 	this.config = config
 	this.ui = ui
 	this.timeline = new Timeline(map)
+	this.ui.registerInitialUnits(this.timeline.getCurrentState().units)
 	this.timeBehind = 0
 }
 

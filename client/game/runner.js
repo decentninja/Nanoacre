@@ -65,10 +65,22 @@ Runner.prototype.startLoop = function(clockAdjustment) {
 		var y = ev.pageY - Math.round(bclr.top + window.pageYOffset - docElem.clientLeft)
 		x /= scale
 		y /= scale
-		lineevent = that.ui.handleMousedown(x, y, ev.button, that.game)
-		if (lineevent) {
-			that.network.send(lineevent)
-			that.eventqueue.push(lineevent)
+		lineevents = that.ui.handleMousedown(x, y, ev.button, that.game)
+		if (lineevents) {
+			lineevents.forEach(function(lineevent) {
+				that.network.send(lineevent)
+				that.eventqueue.push(lineevent)
+			})
+		}
+	}
+
+	window.onkeydown = function(ev) {
+		lineevents = that.ui.handleKeyDown(ev.keyCode, that.game)
+		if (lineevents) {
+			lineevents.forEach(function(lineevent) {
+				that.network.send(lineevent)
+				that.eventqueue.push(lineevent)
+			})
 		}
 	}
 

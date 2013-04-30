@@ -8,6 +8,19 @@ function Ui(canvas_context, config, loadData) {
 	this.ctx = canvas_context
 	this.config = config
 	this.map = loadData.Field
+
+	this.playerId = loadData.Id
+	this.selection = []
+	this.ownedUnits = []
+}
+
+Ui.prototype.registerInitialUnits = function(units) {
+	units.forEach(function(unit) {
+		if (unit.owning_player == this.playerId) {
+			this.ownedUnits.push(unit.id)
+		}
+	}, this)
+	this.selection = [this.ownedUnits[0]]
 }
 
 Ui.prototype.render = function(deltatime, state) {
@@ -47,14 +60,28 @@ Ui.prototype.render = function(deltatime, state) {
 }
 
 Ui.prototype.handleMousedown = function(x, y, button, game) {
-	var ev = {
-		time: game.getNextFrame(),
-		type: this.config.buttons[button],
-		who: 0,
-		towards: {
-			x: (x / UI_RENDER_FACTOR) | 0,
-			y: (y / UI_RENDER_FACTOR) | 0
+	var time = game.getNextFrame()
+	var type = this.config.buttons[button]
+	return this.selection.map(function(unitId, index, selection) {
+		return {
+			time: time,
+			type: type,
+			who: unitId,
+			towards: {
+				x: (x / UI_RENDER_FACTOR) | 0, //TODO: offset if several units are selected
+				y: (y / UI_RENDER_FACTOR) | 0
+			}
+		}
+	})
+}
+
+Ui.prototype.handleKeyDown = function(keycode, game) {
+	if (keycode >= 49 && keycode <= 57) { //1-9
+		var index = keycode - 49
+		if (this.ownedUnits.length > index) {
+			this.selection = [this.ownedUnits[index]]
 		}
 	}
-	return ev
+
+	return null
 }
