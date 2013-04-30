@@ -88,7 +88,6 @@ Ui.prototype.handleKeyDown = function(keycode, nextFrame) {
 		}
 	} else if (keycode == 16) { //shift
 		this.shiftDown = true
-		console.log("shift down")
 	}
 
 	return null
@@ -99,13 +98,12 @@ Ui.prototype.toggleUnitSelection = function(unitId) { //TODO: This should probab
 	if (index == -1) {
 		this.selection.push(unitId)
 	} else {
-		this.selection.splice(indexOf, 1)
+		this.selection.splice(index, 1)
 	}
 }
 
 Ui.prototype.handleKeyUp = function(keycode, nextFrame) {
 	if (keycode == 16) {
 		this.shiftDown = false
-		console.log("shift up")
 	}
 }
