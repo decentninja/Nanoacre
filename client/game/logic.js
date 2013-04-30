@@ -195,6 +195,9 @@ Logic.prototype.step = function(state, events) {
 		if(b.position.x < 0 || b.position.x > map.width* TILE_SIZE || b.position.y < 0 || b.position.y > map.height*TILE_SIZE) {
 			die = true;
 		}
+		if(!self.freespace(b.position)) {
+			die = true
+		}
 		return !die;
 	});
 	state.units.forEach(this.moveUnit.bind(this));
