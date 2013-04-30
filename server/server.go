@@ -6,14 +6,19 @@ import (
 	"log"
 	"net/http"
 	"math/rand"
+	"path/filepath"
 )
 
 var waitingConnection = make(chan *player)
 var fields []*playfield
 
-func SetupSocketServer() {
+func SetupSocketServer(field string) {
 	http.Handle("/ws", websocket.Handler(newConnection))
-	fields = readFieldsFromFolder("maps")
+	if field == "" {
+		fields = readFieldsFromFolder("maps")
+	} else {
+		fields = []*playfield{readFieldFromFile(filepath.Join("maps", field))}
+	}
 }
 
 func newConnection(ws *websocket.Conn) {
