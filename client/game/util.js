@@ -3,8 +3,13 @@
 function deepCopy(obj) {
 	if (typeof obj !== "object" || obj === null)
 		return obj;
-	if (obj instanceof Array)
-		return obj.slice();
+	if (obj instanceof Array) {
+		var ret = [];
+		ret.length = obj.length;
+		for (var i = 0; i < obj.length; ++i)
+			ret[i] = deepCopy(obj[i]);
+		return ret;
+	}
 	var ret = {};
 	for (var a in obj)
 		ret[a] = deepCopy(obj[a]);
