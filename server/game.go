@@ -28,20 +28,6 @@ func (g *game) run() {
 	}
 }
 
-func (g *game) sendToAllOthers(mess *message) {
-	for _, p := range g.players {
-		if p != mess.p {
-			p.send(mess.data)
-		}
-	}
-}
-
-func (g *game) sendToAll(data string) {
-	for _, p := range g.players {
-		p.send(data)
-	}
-}
-
 func (g *game) handleMessage(mess *message) {
 	switch mess.data {
 	case "pong":
@@ -78,4 +64,18 @@ func (g *game) startIfAllChecked() {
 	}
 
 	g.sendToAll(START)
+}
+
+func (g *game) sendToAllOthers(mess *message) {
+	for _, p := range g.players {
+		if p != mess.p {
+			p.send(mess.data)
+		}
+	}
+}
+
+func (g *game) sendToAll(data string) {
+	for _, p := range g.players {
+		p.send(data)
+	}
 }
