@@ -1,7 +1,11 @@
 var BULLET_LENGTH = 50;
 var BULLET_WIDTH = 3;
-var PLAYER_SIZE = 10;
+
+var PLAYER_SIZE = 10; //is this even used?
 var SELECTED_WIDTH = 3;
+
+var COOLDOWN_RADIUS = 1.1;
+var COOLDOWN_WIDTH = 5;
 
 var TILE_RENDER_SIZE = 40;
 var UI_RENDER_FACTOR = TILE_RENDER_SIZE / TILE_SIZE;
@@ -53,10 +57,17 @@ Ui.prototype.render = function(deltatime, state) {
 	this.ctx.fill();
 	for(var i = 0; i < state.units.length; i++) {
 		var unit = state.units[i]
-		this.ctx.fillStyle = this.config.colors.teams[unit.owning_player]
-		this.ctx.beginPath()
 		var x = unit.position.x * UI_RENDER_FACTOR;
 		var y = unit.position.y * UI_RENDER_FACTOR;
+		if (unit.shooting_cooldown != 0) {
+			this.ctx.beginPath()
+			this.ctx.lineWidth = COOLDOWN_WIDTH
+			this.ctx.strokeStyle = this.config.colors.cooldown
+			this.ctx.arc(x, y, COOLDOWN_RADIUS * PLAYER_RADIUS * UI_RENDER_FACTOR, 0, (unit.shooting_cooldown/SHOOTING_COOLDOWN)*Math.PI*2, false)
+			this.ctx.stroke()
+		}
+		this.ctx.fillStyle = this.config.colors.teams[unit.owning_player]
+		this.ctx.beginPath()
 		this.ctx.arc(x, y, PLAYER_RADIUS * UI_RENDER_FACTOR, 0, Math.PI*2, false)
 		this.ctx.fill()
 		if (this.selection.indexOf(unit.id) != -1) {

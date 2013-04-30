@@ -1,11 +1,12 @@
 var TILE_SIZE = 1024;
 var PLAYER_RADIUS = 256;
 
+var SHOOTING_COOLDOWN = 0.5 * 60;
+
 ;(function() {
 "use strict";
 
 var BULLET_SPEED = 200;
-var SHOOTING_COOLDOWN = 0.5 * 60;
 
 var PLAYER_SPEED = 100;
 
