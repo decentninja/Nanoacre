@@ -43,7 +43,6 @@ func readFieldsFromFolder(folder string) []*playfield {
 	mapfiles := make([]string, 1)
 	for _, file := range files {
 		if file[0] != '.' {
-			println(file)
 			mapfiles = append(mapfiles, file)
 		}
 	}
