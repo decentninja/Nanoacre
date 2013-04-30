@@ -190,7 +190,12 @@ Logic.prototype.step = function(state, events) {
 		b.position.y += b.direction.y * BULLET_SPEED;
 		state.units = state.units.filter(function(u) {
 			var distance = Math.sqrt(Math.pow(b.position.x - u.position.x, 2) + Math.pow(b.position.y - u.position.y, 2))
-			return !((b.owning_player != u.owning_player) && distance <= PLAYER_RADIUS);
+			if((b.owning_player != u.owning_player) && distance <= PLAYER_RADIUS) {
+				die = true;
+				return false;
+			} else {
+				return true;
+			}
 		});
 		if(b.position.x < 0 || b.position.x > map.width* TILE_SIZE || b.position.y < 0 || b.position.y > map.height*TILE_SIZE) {
 			die = true;
