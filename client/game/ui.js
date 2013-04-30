@@ -72,7 +72,7 @@ Ui.prototype.render = function(deltatime, state) {
 			this.ctx.beginPath()
 			this.ctx.lineWidth = COOLDOWN_WIDTH
 			this.ctx.strokeStyle = this.config.colors.cooldown
-			this.ctx.arc(x, y, COOLDOWN_RADIUS, -Math.PI/2, (1 - unit.shooting_cooldown/SHOOTING_COOLDOWN)*Math.PI*2 - Math.PI/2, false)
+			this.ctx.arc(x, y, COOLDOWN_RADIUS, -Math.PI/2, (1 - unit.shooting_cooldown/SHOOTING_COOLDOWN)*Math.PI*2 - Math.PI/2, true)
 			this.ctx.stroke()
 		}
 	}
