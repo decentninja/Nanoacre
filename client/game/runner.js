@@ -50,6 +50,15 @@ Runner.prototype.run = function() {
 	})
 }
 
+Runner.prototype.addLineEvents = function(lineevents) {
+	if (lineevents) {
+		lineevents.forEach(function(lineevent) {
+			this.network.send(lineevent)
+			this.eventqueue.push(lineevent)
+		}, this)
+	}
+}
+
 Runner.prototype.startLoop = function(clockAdjustment) {
 	var lobby = this.container.querySelector(".lobby")
 	lobby.style.setProperty("opacity", "0")
@@ -65,23 +74,17 @@ Runner.prototype.startLoop = function(clockAdjustment) {
 		var y = ev.pageY - Math.round(bclr.top + window.pageYOffset - docElem.clientLeft)
 		x /= scale
 		y /= scale
-		lineevents = that.ui.handleMousedown(x, y, ev.button, that.game)
-		if (lineevents) {
-			lineevents.forEach(function(lineevent) {
-				that.network.send(lineevent)
-				that.eventqueue.push(lineevent)
-			})
-		}
+		lineevents = that.ui.handleMousedown(x, y, ev.button, that.game.getNextFrame())
+		that.addLineEvents(lineevents)
 	}
 
 	window.onkeydown = function(ev) {
-		lineevents = that.ui.handleKeyDown(ev.keyCode, that.game)
-		if (lineevents) {
-			lineevents.forEach(function(lineevent) {
-				that.network.send(lineevent)
-				that.eventqueue.push(lineevent)
-			})
-		}
+		lineevents = that.ui.handleKeyDown(ev.keyCode, that.game.getNextFrame())
+		that.addLineEvents(lineevents)
+	}
+	window.onkeyup = function(ev) {
+		lineevents = that.ui.handleKeyUp(ev.keyCode, that.game.getNextFrame())
+		that.addLineEvents(lineevents)
 	}
 
 	// XXX: This is apparently a bit of a hack.

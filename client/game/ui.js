@@ -12,6 +12,7 @@ function Ui(canvas_context, config, loadData) {
 	this.playerId = loadData.Id
 	this.selection = []
 	this.ownedUnits = []
+	this.shiftDown = false
 }
 
 Ui.prototype.registerInitialUnits = function(units) {
@@ -59,12 +60,11 @@ Ui.prototype.render = function(deltatime, state) {
 	}
 }
 
-Ui.prototype.handleMousedown = function(x, y, button, game) {
-	var time = game.getNextFrame()
+Ui.prototype.handleMousedown = function(x, y, button, nextFrame) {
 	var type = this.config.buttons[button]
 	return this.selection.map(function(unitId, index, selection) {
 		return {
-			time: time,
+			time: nextFrame,
 			type: type,
 			who: unitId,
 			towards: {
@@ -75,13 +75,37 @@ Ui.prototype.handleMousedown = function(x, y, button, game) {
 	})
 }
 
-Ui.prototype.handleKeyDown = function(keycode, game) {
+Ui.prototype.handleKeyDown = function(keycode, nextFrame) {
 	if (keycode >= 49 && keycode <= 57) { //1-9
 		var index = keycode - 49
 		if (this.ownedUnits.length > index) {
-			this.selection = [this.ownedUnits[index]]
+			var unitId = this.ownedUnits[index]
+			if (this.shiftDown) {
+				this.toggleUnitSelection(unitId)
+			} else {
+				this.selection = [this.ownedUnits[index]]
+			}
 		}
+	} else if (keycode == 16) { //shift
+		this.shiftDown = true
+		console.log("shift down")
 	}
 
 	return null
+}
+
+Ui.prototype.toggleUnitSelection = function(unitId) { //TODO: This should probably be a bit more intelligent, say only remove units when more than one unit is selected
+	var index = this.selection.indexOf(unitId)
+	if (index == -1) {
+		this.selection.push(unitId)
+	} else {
+		this.selection.splice(indexOf, 1)
+	}
+}
+
+Ui.prototype.handleKeyUp = function(keycode, nextFrame) {
+	if (keycode == 16) {
+		this.shiftDown = false
+		console.log("shift up")
+	}
 }
