@@ -1,11 +1,11 @@
 package server
 
 import (
-	"os"
-	"regexp"
 	"bufio"
-	"strconv"
+	"os"
 	"path/filepath"
+	"regexp"
+	"strconv"
 )
 
 type playfield struct {
@@ -36,10 +36,17 @@ func (p *playfield) calcUnitsPerPlayer() {
 }
 
 func readFieldsFromFolder(folder string) []*playfield {
-	fo, err:= os.Open(folder)
+	fo, err := os.Open(folder)
 	d(err)
 	files, err := fo.Readdirnames(-1)
 	d(err)
+	mapfiles := make([]string, 1)
+	for _, file := range files {
+		if file[0] != '.' {
+			println(file)
+			mapfiles = append(mapfiles, file)
+		}
+	}
 
 	ret := make([]*playfield, len(files))
 	for i := range ret {
