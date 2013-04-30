@@ -117,7 +117,7 @@ function initializeGame(loadData) {
 			selected: "#208BB5",
 			text: "#208BB5",
 			map: "#262626",
-			cooldown: "#208BB5", //TODO: set a good color for this
+			cooldown: "#C82257",
 		},
 		buttons: {
 			0: "fire",
