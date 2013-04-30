@@ -47,9 +47,9 @@ func readFieldsFromFolder(folder string) []*playfield {
 		}
 	}
 
-	ret := make([]*playfield, len(files))
+	ret := make([]*playfield, len(mapfiles))
 	for i := range ret {
-		ret[i] = readFieldFromFile(filepath.Join(folder, files[i]))
+		ret[i] = readFieldFromFile(filepath.Join(folder, mapfiles[i]))
 	}
 
 	return ret
