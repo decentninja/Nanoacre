@@ -7,6 +7,8 @@ var SELECTED_WIDTH = 3;
 var COOLDOWN_RADIUS = 3;
 var COOLDOWN_WIDTH = 6;
 
+var DOT_DISTANCE = Math.PI/8
+
 var TILE_RENDER_SIZE = 40;
 var UI_RENDER_FACTOR = TILE_RENDER_SIZE / TILE_SIZE;
 
@@ -59,15 +61,32 @@ Ui.prototype.render = function(deltatime, state) {
 		var unit = state.units[i]
 		var x = unit.position.x * UI_RENDER_FACTOR;
 		var y = unit.position.y * UI_RENDER_FACTOR;
+		var isSelected = this.selection.indexOf(unit.id) != -1
 		this.ctx.fillStyle = this.config.colors.teams[unit.owning_player]
-		this.ctx.beginPath()
-		this.ctx.arc(x, y, PLAYER_RADIUS * UI_RENDER_FACTOR, 0, Math.PI*2, false)
-		this.ctx.fill()
-		if (this.selection.indexOf(unit.id) != -1) {
+
+		var idWhenSelected = this.ownedUnits.indexOf(unit.id)
+		if (idWhenSelected == -1) {
+			this.ctx.beginPath()
+			this.ctx.arc(x, y, PLAYER_RADIUS * UI_RENDER_FACTOR, 0, Math.PI*2, false)
+			this.ctx.fill()
+		} else {
+			if (this.drawNGons) {
+				this.ctx.beginPath()
+				this.drawNGonPath(x, y, idWhenSelected + 3, PLAYER_RADIUS * UI_RENDER_FACTOR)
+				this.ctx.fill()
+			} else {
+				this.drawDots(x, y, idWhenSelected + 1, PLAYER_RADIUS * UI_RENDER_FACTOR * 1.4, 2)
+				this.ctx.beginPath()
+				this.ctx.arc(x, y, PLAYER_RADIUS * UI_RENDER_FACTOR, 0, Math.PI*2, false)
+				this.ctx.fill()
+ 			}
+		}
+		if (isSelected) {
 			this.ctx.lineWidth = SELECTED_WIDTH
 			this.ctx.strokeStyle = this.config.colors.selected
 			this.ctx.stroke()
 		}
+
 		if (unit.shooting_cooldown != 0) {
 			this.ctx.beginPath()
 			this.ctx.lineWidth = COOLDOWN_WIDTH
@@ -76,6 +95,51 @@ Ui.prototype.render = function(deltatime, state) {
 			this.ctx.stroke()
 		}
 	}
+}
+
+Ui.prototype.precomputeDots = function(maxN) {
+	this.dots = new Array(maxN)
+	for (var i = 0; i <= maxN; i++) {
+		this.dots[i] = new Array(i)
+		var firstAngle = -Math.PI/2 - (i - 1)*DOT_DISTANCE/2
+		for (var j = 0; j < i; j++) {
+			this.dots[i][j] = [Math.cos(firstAngle + j * DOT_DISTANCE), Math.sin(firstAngle + j * DOT_DISTANCE)]
+		}
+	}
+}
+
+Ui.prototype.drawDots = function(x, y, n, radiusFromPlayer, dotRadius) {
+	if (!this.dots || n >= this.dots.length)
+		this.precomputeDots(Math.max(5, n))
+
+	for (var i = 0; i < this.dots[n].length; i++) {
+		this.ctx.beginPath()
+		this.ctx.arc(x + radiusFromPlayer * this.dots[n][i][0],
+			         y + radiusFromPlayer * this.dots[n][i][1], 
+			         dotRadius, 0, Math.PI*2, false)
+		this.ctx.fill()
+	}
+}
+
+Ui.prototype.precomputeNGons = function(maxN) {
+	this.ngons = new Array(maxN)
+	for (var i = 0; i <= maxN; i++) {
+		this.ngons[i] = new Array(i)
+		for (var j = 0; j < i; j++) {
+			this.ngons[i][j] = [Math.cos(j * 2 * Math.PI / i - Math.PI/2), Math.sin(j * 2 * Math.PI / i - Math.PI/2)]
+		}
+	}
+}
+
+Ui.prototype.drawNGonPath = function(x, y, n, radius) {
+	if (!this.ngons || n >= this.ngons.length)
+		this.precomputeNGons(Math.max(10, n))
+
+	this.ctx.moveTo(x, y - radius)
+	for (var i = 0; i < n; i++) {
+		this.ctx.lineTo(x + radius*this.ngons[n][i][0], y + radius*this.ngons[n][i][1])
+	}
+	this.ctx.closePath()
 }
 
 Ui.prototype.handleMousedown = function(x, y, button, nextFrame) {
@@ -106,6 +170,8 @@ Ui.prototype.handleKeyDown = function(keycode, nextFrame) {
 		}
 	} else if (keycode == 16) { //shift
 		this.shiftDown = true
+	} else if (keycode == 48) {
+		this.drawNGons = !this.drawNGons
 	}
 
 	return null
