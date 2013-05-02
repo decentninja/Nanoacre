@@ -43,7 +43,7 @@ func readFieldsFromFolder(folder string) []*playfield {
 	d(err)
 
 	ret := make([]*playfield, 0)
-	for i, file := range mapfiles {
+	for _, file := range files {
 		if file[0] != '.' {
 			ret = append(ret, readFieldFromFile(filepath.Join(folder, file)))
 		}
