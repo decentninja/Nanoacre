@@ -10,11 +10,35 @@ function Runner(socket, container, config, loadData) {
 	canvas.height = loadData.Field.height * TILE_RENDER_SIZE
 	this.real_map_width = canvas.width
 	
+	var actualContainer = container.querySelector(".fullscreen-container")
 	function mayresize() {
-		if(canvas.width > container.offsetWidth) {
+		var widthScale  = actualContainer.offsetWidth  / canvas.width
+		var heightScale = actualContainer.offsetHeight / canvas.height
+		if (widthScale < 1 && heightScale >= 1) {
 			canvas.style.setProperty("width", "100%")
-		} else {
+			canvas.style.setProperty("height", "")
+			console.log("width")
+
+		} else if (widthScale >= 1 && heightScale < 1) {
 			canvas.style.setProperty("width", "")
+			canvas.style.setProperty("height", "100%")
+			console.log("height")
+
+		} else if (widthScale < 1 && heightScale < 1) {
+			if (widthScale < heightScale) {
+				canvas.style.setProperty("width", "100%")
+				canvas.style.setProperty("height", "")
+				console.log("fancy width")
+			} else {
+				canvas.style.setProperty("width", "")
+				canvas.style.setProperty("height", "100%")
+				console.log("fancy height")
+			}
+
+		} else {
+			console.log("nothing")
+			canvas.style.setProperty("width", "")
+			canvas.style.setProperty("height", "")
 		}
 	}
 	mayresize()

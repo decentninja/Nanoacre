@@ -3,15 +3,19 @@ body {
 	font-weight: 400;
 	background-color: #090909;
 	color: #208BB5;
+	margin: 0px;
+	overflow: hidden;
 }
 
 .content {
-	margin: auto;
+	margin-left: auto;
+	margin-right: auto;
 }
 
 .content > h1 {
 	text-align: center;
 	font-weight: 700;
+	margin: 0px;
 }
 
 .settings {
@@ -31,19 +35,31 @@ body {
 	font-weight: 400;
 }
 
+h1 {
+	height: 10%;
+}
+
+html, body, .content, .fullscreen-container, .canvas-wrapper {
+	height: 100%;
+}
+
+.game-container {
+	height: 70%;
+}
+
 .canvas-wrapper {
 	text-align: center;
 }
 
 .canvas {
 	background-color: #1D1D1D;
-	height: 100%;
 }
 
 .fullscreen-container:-moz-full-screen {
 	background-color: black;
     text-align: center;
 	display: table;
+	height: 100%;
 }
 .fullscreen-container:-moz-full-screen > .canvas-wrapper {
 	display: table-cell;
@@ -54,6 +70,7 @@ body {
 	background-color: black;
     text-align: center;
 	display: table;
+	height: 100%;
 }
 .fullscreen-container:-webkit-full-screen > .canvas-wrapper {
 	display: table-cell;
