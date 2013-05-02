@@ -95,8 +95,8 @@ Ui.prototype.render = function(deltatime, state) {
 		var y = bullet.position.y * UI_RENDER_FACTOR;
 		this.ctx.moveTo(x, y)
 		this.ctx.lineTo(
-			x + BULLET_LENGTH * bullet.direction.x,
-			y + BULLET_LENGTH * bullet.direction.y)
+			x - BULLET_LENGTH * bullet.direction.x,
+			y - BULLET_LENGTH * bullet.direction.y)
 		this.ctx.stroke()
 	}
 

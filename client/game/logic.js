@@ -160,24 +160,26 @@ Logic.prototype.step = function(state, events) {
 				break;
 
 			case "fire":
-				var owning_player, pos, dir, x, y, l;
 				state.units.forEach(function(u) {
 					if (u.id === ev.who && u.shooting_cooldown == 0) {
-						owning_player = u.owning_player;
-						pos = deepCopy(u.position);
+						var owning_player = u.owning_player;
+						var pos = deepCopy(u.position);
 						u.shooting_cooldown = SHOOTING_COOLDOWN;
-						x = ev.towards.x - pos.x;
-						y = ev.towards.y - pos.y;
-						l = Math.sqrt(x*x + y*y)
+						var x = ev.towards.x - pos.x;
+						var y = ev.towards.y - pos.y;
+						var l = Math.sqrt(x*x + y*y)
+						var dir = {
+							x: x / l,
+							y: y / l,
+						}
+						pos.x += dir.x * TILE_SIZE
+						pos.y += dir.y * TILE_SIZE
 						state.nbullets++;
 						state.bullets.push({
 							id: state.nbullets,
 							owning_player: owning_player,
 							position: pos,
-							direction: {
-								x: x / l,
-								y: y / l
-							}
+							direction: dir
 						});
 					}
 				});
@@ -197,7 +199,8 @@ Logic.prototype.step = function(state, events) {
 				return true;
 			}
 		});
-		if(b.position.x < 0 || b.position.x > map.width* TILE_SIZE || b.position.y < 0 || b.position.y > map.height*TILE_SIZE) {
+		// Outside map
+		if(b.position.x < -TILE_SIZE || b.position.x > (map.width+1)* TILE_SIZE || b.position.y < -TILE_SIZE || b.position.y > (1+map.height)*TILE_SIZE) {
 			die = true;
 		}
 		if(!self.freespace(b.position, 0)) {
