@@ -125,7 +125,7 @@ Ui.prototype.renderUnit = function(unit, alive) {
 		this.ctx.stroke()
 	}
 
-	if (unit.shooting_cooldown != 0) {
+	if (alive && unit.shooting_cooldown != 0) {
 		this.ctx.beginPath()
 		this.ctx.lineWidth = COOLDOWN_WIDTH
 		this.ctx.strokeStyle = this.config.colors.cooldown
