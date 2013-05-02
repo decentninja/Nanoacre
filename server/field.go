@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
+	"log"
 )
 
 type playfield struct {
@@ -40,16 +41,12 @@ func readFieldsFromFolder(folder string) []*playfield {
 	d(err)
 	files, err := fo.Readdirnames(-1)
 	d(err)
-	mapfiles := make([]string, 1)
-	for _, file := range files {
-		if file[0] != '.' {
-			mapfiles = append(mapfiles, file)
-		}
-	}
 
-	ret := make([]*playfield, len(mapfiles))
-	for i := range ret {
-		ret[i] = readFieldFromFile(filepath.Join(folder, mapfiles[i]))
+	ret := make([]*playfield, 0)
+	for i, file := range mapfiles {
+		if file[0] != '.' {
+			ret = append(ret, readFieldFromFile(filepath.Join(folder, file)))
+		}
 	}
 
 	return ret
@@ -76,6 +73,10 @@ func readFieldFromFile(file string) *playfield {
 			row[i] = num
 		}
 		ret = append(ret, row)
+	}
+
+	if (len(ret[0]) == 0) {
+		log.Fatalf("Couldn't load \"%s\", possibly an error: %s\n", file, err)
 	}
 
 	return &playfield{Tiles: ret}
