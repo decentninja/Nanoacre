@@ -60,8 +60,20 @@ Ui.prototype.render = function(deltatime, state) {
 	}
 	this.lastState = state
 
+	// Clear
 	this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 
+	// Deadlings
+	for (var i = 0; i < this.deadUnits.length; i++) {
+		this.renderUnit(this.deadUnits[i], false)
+	}
+
+	// Units
+	for (var i = 0; i < state.units.length; i++) {
+		this.renderUnit(state.units[i], true)
+	}
+
+	// Bullets
 	this.ctx.strokeStyle = this.config.colors.bullet
 	this.ctx.lineWidth = BULLET_WIDTH;
 	for (var i = 0; i < state.bullets.length; i++) {
@@ -76,6 +88,7 @@ Ui.prototype.render = function(deltatime, state) {
 		this.ctx.stroke()
 	}
 
+	// Map
 	this.ctx.fillStyle = this.config.colors.map
 	this.ctx.beginPath()
 	for (var i = 0; i < this.map.Tiles.length; i++) {
@@ -86,13 +99,6 @@ Ui.prototype.render = function(deltatime, state) {
 		}
 	}
 	this.ctx.fill();
-
-	for (var i = 0; i < this.deadUnits.length; i++) {
-		this.renderUnit(this.deadUnits[i], false)
-	}
-	for (var i = 0; i < state.units.length; i++) {
-		this.renderUnit(state.units[i], true)
-	}
 }
 
 Ui.prototype.renderUnit = function(unit, alive) {
@@ -216,7 +222,6 @@ Ui.prototype.handleKeyDown = function(keycode, shiftDown, nextFrame) {
 		}
 	} else if (keycode == 48) {
 		this.drawMode = (this.drawMode + 1) % 3
-		console.log(this.drawMode)
 	}
 
 	return null
