@@ -17,6 +17,8 @@ function Ui(canvas_context, config, loadData) {
 	this.config = config
 	this.map = loadData.Field
 
+	this.deadUnits = []
+
 	this.playerId = loadData.Id
 	this.selection = []
 	this.ownedUnits = []
@@ -33,10 +35,33 @@ Ui.prototype.registerInitialUnits = function(units) {
 }
 
 Ui.prototype.render = function(deltatime, state) {
+	if (this.lastState) {
+		this.lastState.units.forEach(function(unit) {
+			for (var i = 0; i < state.units.length; i++) {
+				if (state.units[i].id == unit.id)
+					return
+			}
+
+			this.deadUnits.push(deepCopy(unit))
+		}, this)
+
+		for (var i = 0; i < this.deadUnits.length; i++) {
+			for (var j = 0; j < state.units.length; j++) {
+				if (state.units[j].id == this.deadUnits[i].id) {
+					this.deadUnits.splice(i, 1)
+					i--
+					console.log("unit " + state.units[i].id + " used to be dead.")
+					break
+				}
+			}
+		}
+	}
+	this.lastState = state
+
 	this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 	this.ctx.strokeStyle = this.config.colors.bullet
 	this.ctx.lineWidth = BULLET_WIDTH;
-	for(var i = 0; i < state.bullets.length; i++) {
+	for (var i = 0; i < state.bullets.length; i++) {
 		var bullet = state.bullets[i]
 		this.ctx.beginPath()
 		var x = bullet.position.x * UI_RENDER_FACTOR;
@@ -49,7 +74,7 @@ Ui.prototype.render = function(deltatime, state) {
 	}
 	this.ctx.fillStyle = this.config.colors.map
 	this.ctx.beginPath()
-	for(var i = 0; i < this.map.Tiles.length; i++) {
+	for (var i = 0; i < this.map.Tiles.length; i++) {
 		for(var j = 0; j < this.map.Tiles[0].length; j++) {
 			if(this.map.Tiles[i][j] == 1) {
 				this.ctx.rect(j*TILE_RENDER_SIZE, i*TILE_RENDER_SIZE, TILE_RENDER_SIZE, TILE_RENDER_SIZE)
@@ -57,43 +82,52 @@ Ui.prototype.render = function(deltatime, state) {
 		}
 	}
 	this.ctx.fill();
-	for(var i = 0; i < state.units.length; i++) {
-		var unit = state.units[i]
-		var x = unit.position.x * UI_RENDER_FACTOR;
-		var y = unit.position.y * UI_RENDER_FACTOR;
-		var isSelected = this.selection.indexOf(unit.id) != -1
-		this.ctx.fillStyle = this.config.colors.teams[unit.owning_player]
+	for (var i = 0; i < this.deadUnits.length; i++) {
+		this.renderUnit(this.deadUnits[i], false)
+	}
+	for (var i = 0; i < state.units.length; i++) {
+		this.renderUnit(state.units[i], true)
+	}
+}
 
-		var idWhenSelected = this.ownedUnits.indexOf(unit.id)
-		if (idWhenSelected == -1) {
+Ui.prototype.renderUnit = function(unit, alive) {
+	var x = unit.position.x * UI_RENDER_FACTOR;
+	var y = unit.position.y * UI_RENDER_FACTOR;
+	var isSelected = this.selection.indexOf(unit.id) != -1
+	if (alive) {
+		this.ctx.fillStyle = this.config.colors.teams[unit.owning_player]
+	} else {
+		this.ctx.fillStyle = this.config.colors.dead
+	}
+
+	var idWhenSelected = this.ownedUnits.indexOf(unit.id)
+	if (idWhenSelected == -1) {
+		this.ctx.beginPath()
+		this.ctx.arc(x, y, PLAYER_RADIUS * UI_RENDER_FACTOR, 0, Math.PI*2, false)
+	} else {
+		if (this.drawNGons) {
+			this.ctx.beginPath()
+			this.drawNGonPath(x, y, idWhenSelected + 3, PLAYER_RADIUS * UI_RENDER_FACTOR)
+		} else {
+			this.drawDots(x, y, idWhenSelected + 1, PLAYER_RADIUS * UI_RENDER_FACTOR * 1.4, 2)
 			this.ctx.beginPath()
 			this.ctx.arc(x, y, PLAYER_RADIUS * UI_RENDER_FACTOR, 0, Math.PI*2, false)
-			this.ctx.fill()
-		} else {
-			if (this.drawNGons) {
-				this.ctx.beginPath()
-				this.drawNGonPath(x, y, idWhenSelected + 3, PLAYER_RADIUS * UI_RENDER_FACTOR)
-				this.ctx.fill()
-			} else {
-				this.drawDots(x, y, idWhenSelected + 1, PLAYER_RADIUS * UI_RENDER_FACTOR * 1.4, 2)
-				this.ctx.beginPath()
-				this.ctx.arc(x, y, PLAYER_RADIUS * UI_RENDER_FACTOR, 0, Math.PI*2, false)
-				this.ctx.fill()
- 			}
 		}
-		if (isSelected) {
-			this.ctx.lineWidth = SELECTED_WIDTH
-			this.ctx.strokeStyle = this.config.colors.selected
-			this.ctx.stroke()
-		}
+	}
+	this.ctx.fill()
 
-		if (unit.shooting_cooldown != 0) {
-			this.ctx.beginPath()
-			this.ctx.lineWidth = COOLDOWN_WIDTH
-			this.ctx.strokeStyle = this.config.colors.cooldown
-			this.ctx.arc(x, y, COOLDOWN_RADIUS, -Math.PI/2, (1 - unit.shooting_cooldown/SHOOTING_COOLDOWN)*Math.PI*2 - Math.PI/2, true)
-			this.ctx.stroke()
-		}
+	if (isSelected) {
+		this.ctx.lineWidth = SELECTED_WIDTH
+		this.ctx.strokeStyle = this.config.colors.selected
+		this.ctx.stroke()
+	}
+
+	if (unit.shooting_cooldown != 0) {
+		this.ctx.beginPath()
+		this.ctx.lineWidth = COOLDOWN_WIDTH
+		this.ctx.strokeStyle = this.config.colors.cooldown
+		this.ctx.arc(x, y, COOLDOWN_RADIUS, -Math.PI/2, (1 - unit.shooting_cooldown/SHOOTING_COOLDOWN)*Math.PI*2 - Math.PI/2, true)
+		this.ctx.stroke()
 	}
 }
 

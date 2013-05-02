@@ -112,6 +112,7 @@ function initializeGame(loadData) {
 				"#872237",
 				"#A1A1AA"
 			],
+			dead: "#262626", //TODO: check color
 			background: "#1D1D1D",
 			bullet: "#C82257",
 			selected: "#208BB5",
