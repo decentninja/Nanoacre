@@ -23,6 +23,8 @@ function Ui(canvas_context, config, loadData) {
 	this.selection = []
 	this.ownedUnits = []
 	this.shiftDown = false
+
+	this.drawMode = 0
 }
 
 Ui.prototype.registerInitialUnits = function(units) {
@@ -108,13 +110,20 @@ Ui.prototype.renderUnit = function(unit, alive) {
 		this.ctx.beginPath()
 		this.ctx.arc(x, y, PLAYER_RADIUS * UI_RENDER_FACTOR, 0, Math.PI*2, false)
 	} else {
-		if (this.drawNGons) {
-			this.ctx.beginPath()
-			this.drawNGonPath(x, y, idWhenSelected + 3, PLAYER_RADIUS * UI_RENDER_FACTOR)
-		} else {
-			this.drawDots(x, y, idWhenSelected + 1, PLAYER_RADIUS * UI_RENDER_FACTOR * 1.4, 2)
-			this.ctx.beginPath()
-			this.ctx.arc(x, y, PLAYER_RADIUS * UI_RENDER_FACTOR, 0, Math.PI*2, false)
+		switch(this.drawMode) {
+			case 0:
+				this.ctx.beginPath()
+				this.ctx.arc(x, y, PLAYER_RADIUS * UI_RENDER_FACTOR, 0, Math.PI*2, false)
+				break
+			case 1:
+				this.drawDots(x, y, idWhenSelected + 1, PLAYER_RADIUS * UI_RENDER_FACTOR * 1.4, 2)
+				this.ctx.beginPath()
+				this.ctx.arc(x, y, PLAYER_RADIUS * UI_RENDER_FACTOR, 0, Math.PI*2, false)
+				break
+			case 2:
+				this.ctx.beginPath()
+				this.drawNGonPath(x, y, idWhenSelected + 3, PLAYER_RADIUS * UI_RENDER_FACTOR)
+				break
 		}
 	}
 	this.ctx.fill()
@@ -206,7 +215,8 @@ Ui.prototype.handleKeyDown = function(keycode, shiftDown, nextFrame) {
 			}
 		}
 	} else if (keycode == 48) {
-		this.drawNGons = !this.drawNGons
+		this.drawMode = (this.drawMode + 1) % 3
+		console.log(this.drawMode)
 	}
 
 	return null
