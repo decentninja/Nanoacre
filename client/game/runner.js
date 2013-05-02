@@ -17,26 +17,21 @@ function Runner(socket, container, config, loadData) {
 		if (widthScale < 1 && heightScale >= 1) {
 			canvas.style.setProperty("width", "100%")
 			canvas.style.setProperty("height", "")
-			console.log("width")
 
 		} else if (widthScale >= 1 && heightScale < 1) {
 			canvas.style.setProperty("width", "")
 			canvas.style.setProperty("height", "100%")
-			console.log("height")
 
 		} else if (widthScale < 1 && heightScale < 1) {
 			if (widthScale < heightScale) {
 				canvas.style.setProperty("width", "100%")
 				canvas.style.setProperty("height", "")
-				console.log("fancy width")
 			} else {
 				canvas.style.setProperty("width", "")
 				canvas.style.setProperty("height", "100%")
-				console.log("fancy height")
 			}
 
 		} else {
-			console.log("nothing")
 			canvas.style.setProperty("width", "")
 			canvas.style.setProperty("height", "")
 		}
