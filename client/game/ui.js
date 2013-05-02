@@ -68,6 +68,18 @@ Ui.prototype.render = function(deltatime, state) {
 		this.renderUnit(this.deadUnits[i], false)
 	}
 
+	// Map
+	this.ctx.fillStyle = this.config.colors.map
+	this.ctx.beginPath()
+	for (var i = 0; i < this.map.Tiles.length; i++) {
+		for(var j = 0; j < this.map.Tiles[0].length; j++) {
+			if(this.map.Tiles[i][j] == 1) {
+				this.ctx.rect(j*TILE_RENDER_SIZE, i*TILE_RENDER_SIZE, TILE_RENDER_SIZE, TILE_RENDER_SIZE)
+			}
+		}
+	}
+	this.ctx.fill();
+
 	// Units
 	for (var i = 0; i < state.units.length; i++) {
 		this.renderUnit(state.units[i], true)
@@ -88,17 +100,6 @@ Ui.prototype.render = function(deltatime, state) {
 		this.ctx.stroke()
 	}
 
-	// Map
-	this.ctx.fillStyle = this.config.colors.map
-	this.ctx.beginPath()
-	for (var i = 0; i < this.map.Tiles.length; i++) {
-		for(var j = 0; j < this.map.Tiles[0].length; j++) {
-			if(this.map.Tiles[i][j] == 1) {
-				this.ctx.rect(j*TILE_RENDER_SIZE, i*TILE_RENDER_SIZE, TILE_RENDER_SIZE, TILE_RENDER_SIZE)
-			}
-		}
-	}
-	this.ctx.fill();
 }
 
 Ui.prototype.renderUnit = function(unit, alive) {
