@@ -59,6 +59,7 @@ Ui.prototype.render = function(deltatime, state) {
 	this.lastState = state
 
 	this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+
 	this.ctx.strokeStyle = this.config.colors.bullet
 	this.ctx.lineWidth = BULLET_WIDTH;
 	for (var i = 0; i < state.bullets.length; i++) {
@@ -72,6 +73,7 @@ Ui.prototype.render = function(deltatime, state) {
 			y + BULLET_LENGTH * bullet.direction.y)
 		this.ctx.stroke()
 	}
+
 	this.ctx.fillStyle = this.config.colors.map
 	this.ctx.beginPath()
 	for (var i = 0; i < this.map.Tiles.length; i++) {
@@ -82,6 +84,7 @@ Ui.prototype.render = function(deltatime, state) {
 		}
 	}
 	this.ctx.fill();
+
 	for (var i = 0; i < this.deadUnits.length; i++) {
 		this.renderUnit(this.deadUnits[i], false)
 	}
@@ -191,19 +194,17 @@ Ui.prototype.handleMousedown = function(x, y, button, nextFrame) {
 	})
 }
 
-Ui.prototype.handleKeyDown = function(keycode, nextFrame) {
+Ui.prototype.handleKeyDown = function(keycode, shiftDown, nextFrame) {
 	if (keycode >= 49 && keycode <= 57) { //1-9
 		var index = keycode - 49
 		if (this.ownedUnits.length > index) {
 			var unitId = this.ownedUnits[index]
-			if (this.shiftDown) {
+			if (shiftDown) {
 				this.toggleUnitSelection(unitId)
 			} else {
 				this.selection = [this.ownedUnits[index]]
 			}
 		}
-	} else if (keycode == 16) { //shift
-		this.shiftDown = true
 	} else if (keycode == 48) {
 		this.drawNGons = !this.drawNGons
 	}
@@ -220,8 +221,4 @@ Ui.prototype.toggleUnitSelection = function(unitId) { //TODO: This should probab
 	}
 }
 
-Ui.prototype.handleKeyUp = function(keycode, nextFrame) {
-	if (keycode == 16) {
-		this.shiftDown = false
-	}
-}
+Ui.prototype.handleKeyUp = function(keycode, shiftDown, nextFrame) {}

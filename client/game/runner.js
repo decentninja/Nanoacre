@@ -79,11 +79,11 @@ Runner.prototype.startLoop = function(clockAdjustment) {
 	}
 
 	window.onkeydown = function(ev) {
-		lineevents = that.ui.handleKeyDown(ev.keyCode, that.game.getNextFrame())
+		lineevents = that.ui.handleKeyDown(ev.keyCode, ev.shiftKey, that.game.getNextFrame())
 		that.addLineEvents(lineevents)
 	}
 	window.onkeyup = function(ev) {
-		lineevents = that.ui.handleKeyUp(ev.keyCode, that.game.getNextFrame())
+		lineevents = that.ui.handleKeyUp(ev.keyCode, ev.shiftKey, that.game.getNextFrame())
 		that.addLineEvents(lineevents)
 	}
 
