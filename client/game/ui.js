@@ -1,7 +1,6 @@
 var BULLET_LENGTH = 50;
 var BULLET_WIDTH = 3;
 
-var PLAYER_SIZE = 10; //is this even used?
 var SELECTED_WIDTH = 3;
 
 var COOLDOWN_RADIUS = 3;
@@ -68,6 +67,16 @@ Ui.prototype.render = function(deltatime, state) {
 		this.renderUnit(this.deadUnits[i], false)
 	}
 
+	// Units
+	for (var i = 0; i < state.units.length; i++) {
+		this.renderUnit(state.units[i], true)
+	}
+
+	for (var i = 0; i < state.units.length; i++) {
+		if (state.units[i].id === 0) // XXX need to do unions here somehow... ugh
+			this.renderShadows(state.units[i])
+	}
+
 	// Map
 	this.ctx.fillStyle = this.config.colors.map
 	this.ctx.beginPath()
@@ -79,11 +88,6 @@ Ui.prototype.render = function(deltatime, state) {
 		}
 	}
 	this.ctx.fill();
-
-	// Units
-	for (var i = 0; i < state.units.length; i++) {
-		this.renderUnit(state.units[i], true)
-	}
 
 	// Bullets
 	this.ctx.strokeStyle = this.config.colors.bullet
@@ -148,6 +152,66 @@ Ui.prototype.renderUnit = function(unit, alive) {
 		this.ctx.arc(x, y, COOLDOWN_RADIUS, -Math.PI/2, (1 - unit.shooting_cooldown/SHOOTING_COOLDOWN)*Math.PI*2 - Math.PI/2, true)
 		this.ctx.stroke()
 	}
+}
+
+Ui.prototype.renderShadows = function(unit) {
+	// return;
+	this.ctx.fillStyle = 'yellow';
+	var unitpos = {
+		x: unit.position.x * UI_RENDER_FACTOR,
+		y: unit.position.y * UI_RENDER_FACTOR
+	};
+	var sz = TILE_RENDER_SIZE;
+	for (var y = 0; y < this.map.Tiles.length; y++) {
+		for (var x = 0; x < this.map.Tiles[0].length; x++) {
+			var mx = x * sz;
+			var my = y * sz;
+			if (this.map.Tiles[y][x] == 1) {
+				var points = [
+					{x: mx, y: my},
+					{x: mx, y: my + sz},
+					{x: mx + sz, y: my},
+					{x: mx + sz, y: my + sz},
+				];
+				var angles = points.map(function(p) {
+					return Math.atan2(p.y - unitpos.y, p.x - unitpos.x);
+				});
+				var bestangle = 0, besti = 0, bestj = 0;
+				for (var i = 0; i < 4; ++i) {
+					for (var j = i+1; j < 4; ++j) {
+						var d = angles[i] - angles[j];
+						if (d < 0) d = -d;
+						d %= 2*Math.PI;
+						if (d >= Math.PI) d = 2*Math.PI - d;
+						if (d > bestangle) {
+							bestangle = d;
+							besti = i;
+							bestj = j;
+						}
+					}
+				}
+
+				this.renderShadow(unitpos, points[besti], points[bestj]);
+			}
+		}
+	}
+}
+
+Ui.prototype.renderShadow = function(base, a, b) {
+	var factor = 300;
+	var a2 = {
+		x: (a.x - base.x) * factor + base.x,
+		y: (a.y - base.y) * factor + base.y,
+	};
+	var b2 = {
+		x: (b.x - base.x) * factor + base.x,
+		y: (b.y - base.y) * factor + base.y,
+	};
+	this.ctx.moveTo(a2.x, a2.y);
+	this.ctx.lineTo(b2.x, b2.y);
+	this.ctx.lineTo(b.x, b.y);
+	this.ctx.lineTo(a.x, a.y);
+	this.ctx.fill();
 }
 
 Ui.prototype.precomputeDots = function(maxN) {

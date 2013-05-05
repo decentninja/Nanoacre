@@ -111,12 +111,23 @@ Runner.prototype.startLoop = function(clockAdjustment) {
 	this.loop();
 }
 
+var nextSecond, frames = 0
 Runner.prototype.loop = function() {
 	var newtime = performance.now()
 	var deltatime = newtime - this.lasttime
 	this.lasttime = newtime
 	this.game.step(deltatime, this.eventqueue)
 	requestAnimationFrame(this.loop.bind(this))
+
+	// XXX fps hack
+	++frames
+	if (!nextSecond)
+		nextSecond = newtime + 1000
+	if (newtime >= nextSecond) {
+		console.log(frames)
+		nextSecond += 1000
+		frames = 0
+	}
 }
 
 var runner; // for debugging
