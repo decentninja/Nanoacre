@@ -38,7 +38,7 @@ body {
 
 .lobby {
 	text-align: center;
-	transition: all 3s;
+	transition: opacity 3s ease-out;
 	font-weight: 400;
 }
 

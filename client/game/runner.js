@@ -2,6 +2,8 @@ function Runner(container, config) {
 	var canvas = this.canvas = container.querySelector("canvas")
 	this.container = container
 	this.config = config
+
+	this.lobby = this.container.querySelector(".lobby")
 	
 	var actualContainer = container.querySelector(".fullscreen-container")
 	function mayresize() {
@@ -111,10 +113,21 @@ Runner.prototype.addLineEvents = function(lineevents) {
 	}
 }
 
+Runner.prototype.display = function(text) {
+	this.lobby.style.transition = "none"
+	this.lobby.style.opacity = 1
+	this.lobby.innerHTML = text
+
+	var that = this
+	setTimeout(function() {
+		that.lobby.style.transition = "opacity 3s ease-out"
+		that.lobby.style.opacity = 0
+	}, 1000)
+}
+
 Runner.prototype.startLoop = function(clockAdjustment) {
-	var lobby = this.container.querySelector(".lobby")
-	lobby.style.setProperty("opacity", "0")
-	lobby.innerHTML = "Connected"
+	this.display("Connected")
+
 	var that = this
 	var canvas = this.canvas
 	this.canvas.onmousedown = function(ev) {
