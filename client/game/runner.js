@@ -42,6 +42,7 @@ function Runner(container, config) {
 		} else if (el.mozRequestFullScreen) {
 			el.mozRequestFullScreen()
 		}
+		mayresize()
 	})
 
 	if(debug) {
@@ -84,6 +85,7 @@ Runner.prototype.run = function(loadData) {
 	loadData.Field.height = loadData.Field.Tiles.length
 	this.canvas.width = loadData.Field.width * TILE_RENDER_SIZE
 	this.canvas.height = loadData.Field.height * TILE_RENDER_SIZE
+	window.onresize()
 
 	this.ui = new Ui(canvas_context, this.config, loadData)
 	this.game = new Game(loadData.Field, this.config, this.ui)
