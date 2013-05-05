@@ -1,5 +1,10 @@
 package server
 
+import (
+	"fmt"
+	"log"
+)
+
 const (
 	PING  = "ping"
 	START = "start"
@@ -7,19 +12,42 @@ const (
 )
 
 type game struct {
-	players []*player
-	ch      chan *message
+	id           int
+	players      []*player
+	ch           chan *message
+	parentCustom *custom
 }
 
 type loadData struct {
-	Id int
-	Field *playfield
+	Id      int
+	Options []string
+	Field   *playfield
 }
 
-func (g *game) load(field *playfield) {
-	for i, p := range g.players {
-		p.sendJSON(loadData{i, field})
+func (g *game) gatherPlayers() {
+	for p := range g.parentCustom.newPlayerChannel {
+		p.ch = g.ch
+		g.players = append(g.players, p)
+		log.Printf("Game %s has %d/%d players.\n", g.str(), len(g.players), g.parentCustom.numPlayers)
+		if len(g.players) == g.parentCustom.numPlayers {
+			break
+		}
 	}
+	g.parentCustom.spawnNewGame()
+	g.load()
+	g.run()
+}
+
+func (g *game) load() {
+	field := g.parentCustom.getField()
+	for i, p := range g.players {
+		p.sendJSON(loadData{
+			Id:      i,
+			Options: g.parentCustom.options,
+			Field:   field,
+		})
+	}
+	log.Printf("Game %s has sent loadData.\n", g.str())
 }
 
 func (g *game) run() {
@@ -64,6 +92,7 @@ func (g *game) startIfAllChecked() {
 	}
 
 	g.sendToAll(START)
+	log.Printf("Game %s has sent a start signal.\n", g.str())
 }
 
 func (g *game) sendToAllOthers(mess *message) {
@@ -78,4 +107,8 @@ func (g *game) sendToAll(data string) {
 	for _, p := range g.players {
 		p.send(data)
 	}
+}
+
+func (g *game) str() string {
+	return fmt.Sprintf("%s:%d", g.parentCustom.name, g.id)
 }
