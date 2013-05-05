@@ -120,7 +120,7 @@ Runner.prototype.display = function(text) {
 
 	var that = this
 	setTimeout(function() {
-		that.lobby.style.transition = "opacity 3s ease-out"
+		that.lobby.style.transition = ""
 		that.lobby.style.opacity = 0
 	}, 1000)
 }
