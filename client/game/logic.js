@@ -21,7 +21,7 @@ Logic.prototype.destroy = function() {
 
 Logic.prototype.initialState = function() {
 	var state = {
-		nbullet: 0,
+		nbullets: 0,
 		bullets: [],
 		nunits: 0,
 		units: [],
