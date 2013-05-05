@@ -6,9 +6,12 @@ import (
 )
 
 const (
-	PING  = "ping"
-	START = "start"
-	LOAD  = "load"
+	PING           = "ping"
+	START          = "start"
+	LOAD           = "load"
+	LOSS           = "loss"
+	WIN            = "win"
+	REMATCH_ACCEPT = "rematchAccepted"
 )
 
 type game struct {
@@ -16,6 +19,7 @@ type game struct {
 	players      []*player
 	ch           chan *message
 	parentCustom *custom
+	shouldQuit   bool
 }
 
 type loadData struct {
@@ -53,7 +57,13 @@ func (g *game) load() {
 func (g *game) run() {
 	for mess := range g.ch {
 		g.handleMessage(mess)
+
+		if g.shouldQuit {
+			break
+		}
 	}
+
+	log.Printf("Game %s is closing down.\n", g.str())
 }
 
 func (g *game) handleMessage(mess *message) {
@@ -62,12 +72,25 @@ func (g *game) handleMessage(mess *message) {
 		mess.p.send(PING)
 
 	case "ready":
-		mess.p.ready = true
+		mess.p.state.ready = true
 		g.latencyIfAllReady()
 
 	case "lastpong":
-		mess.p.lateChecked = true
+		mess.p.state.lateChecked = true
 		g.startIfAllChecked()
+
+	case "dead":
+		mess.p.state.dead = true
+		g.endIfAllDead()
+
+	case "rematch":
+		mess.p.state.wantRegame = true
+		g.rematchIfAllAgree()
+
+	case "disconnect":
+		log.Printf("Game %s got a disconnect, shutting down.", g.str())
+		g.sendToAllOthers(mess)
+		g.shouldQuit = true
 
 	default:
 		g.sendToAllOthers(mess)
@@ -76,7 +99,7 @@ func (g *game) handleMessage(mess *message) {
 
 func (g *game) latencyIfAllReady() {
 	for _, p := range g.players {
-		if !p.ready {
+		if !p.state.ready {
 			return
 		}
 	}
@@ -86,13 +109,48 @@ func (g *game) latencyIfAllReady() {
 
 func (g *game) startIfAllChecked() {
 	for _, p := range g.players {
-		if !p.lateChecked {
+		if !p.state.lateChecked {
 			return
 		}
 	}
 
 	g.sendToAll(START)
 	log.Printf("Game %s has sent a start signal.\n", g.str())
+}
+
+func (g *game) endIfAllDead() {
+	alive := 0
+	for _, p := range g.players {
+		if !p.state.dead {
+			alive++
+			if alive > 1 {
+				return
+			}
+		}
+	}
+
+	for _, p := range g.players {
+		if p.state.dead {
+			p.send(LOSS)
+		} else {
+			p.send(WIN)
+		}
+	}
+}
+
+func (g *game) rematchIfAllAgree() {
+	for _, p := range g.players {
+		if !p.state.wantRegame {
+			return
+		}
+	}
+
+	g.sendToAll(REMATCH_ACCEPT)
+	log.Printf("Game %s is starting a rematch.\n", g.str())
+	for _, p := range g.players {
+		p.state = new(gameState)
+	}
+	g.load()
 }
 
 func (g *game) sendToAllOthers(mess *message) {

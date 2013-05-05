@@ -2,14 +2,21 @@ package server
 
 import (
 	"code.google.com/p/go.net/websocket"
+	"io"
 	"log"
 )
 
 type player struct {
-	conn        *websocket.Conn
-	ch          chan *message
+	conn  *websocket.Conn
+	ch    chan *message
+	state *gameState
+}
+
+type gameState struct {
 	ready       bool
 	lateChecked bool
+	dead        bool
+	wantRegame  bool
 }
 
 type message struct {
@@ -19,13 +26,20 @@ type message struct {
 
 func (p *player) listen() {
 	for { //TODO: handle connection closing
-		var mess string
-		err := websocket.Message.Receive(p.conn, &mess)
+		mess := &message{
+			p: p,
+		}
+		err := websocket.Message.Receive(p.conn, &(mess.data))
 		if err != nil {
-			log.Println("got an error, things have died: ", err)
+			if err == io.EOF {
+				mess.data = "disconnect"
+				p.ch <- mess
+			} else {
+				log.Println("got an error, things have died: ", err)
+			}
 			return
 		}
-		p.ch <- &message{mess, p}
+		p.ch <- mess
 	}
 }
 

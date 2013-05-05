@@ -50,6 +50,7 @@ func (l *server) newConnection() func(*websocket.Conn) {
 		log.Printf("Got new connection in custom: \"%s\"\n", customKey)
 		p := &player{
 			conn: ws,
+			state: new(gameState),
 		}
 		c.newPlayerChannel <- p
 		p.listen()
@@ -71,7 +72,7 @@ func (l *server) newDefaultCustom(name string) *custom {
 func (c *custom) spawnNewGame() {
 	g := &game{
 		players:      make([]*player, 0),
-		ch:           make(chan *message),
+		ch:           make(chan *message, c.numPlayers),
 		parentCustom: c,
 		id:           c.nextId,
 	}
