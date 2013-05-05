@@ -60,6 +60,7 @@ func (l *server) newDefaultCustom(name string) *custom {
 		name:             name,
 		fields:           l.allFields,
 		options:          make([]string, 0, 0),
+		numPlayers:       2,
 		newPlayerChannel: make(chan *player),
 	}
 	c.spawnNewGame()
