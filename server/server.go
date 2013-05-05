@@ -44,7 +44,8 @@ func (l *server) newConnection() func(*websocket.Conn) {
 		customKey := ws.Request().URL.Query().Get("custom")
 		c, exists := l.customs[customKey]
 		if !exists { //TODO: data race might lose one player if connections are simultaneous
-			l.customs[customKey] = l.newDefaultCustom(customKey)
+			c = l.newDefaultCustom(customKey)
+			l.customs[customKey] = c
 		}
 		log.Printf("Got new connection in custom: \"%s\"\n", customKey)
 		p := &player{
