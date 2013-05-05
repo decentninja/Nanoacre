@@ -1,3 +1,5 @@
+"use strict";
+
 var BULLET_LENGTH = 50;
 var BULLET_WIDTH = 3;
 
@@ -72,10 +74,12 @@ Ui.prototype.render = function(deltatime, state) {
 		this.renderUnit(state.units[i], true)
 	}
 
+	var shadowsFor = [];
 	for (var i = 0; i < state.units.length; i++) {
-		if (state.units[i].id === 0) // XXX need to do unions here somehow... ugh
-			this.renderShadows(state.units[i])
+		if (state.units[i].owning_player === this.playerId)
+			shadowsFor.push(state.units[i]);
 	}
+	this.renderShadows(shadowsFor);
 
 	// Map
 	this.ctx.fillStyle = this.config.colors.map
@@ -145,7 +149,7 @@ Ui.prototype.renderUnit = function(unit, alive) {
 		this.ctx.stroke()
 	}
 
-	if (alive && unit.shooting_cooldown != 0) {
+	if (alive && unit.shooting_cooldown !== 0) {
 		this.ctx.beginPath()
 		this.ctx.lineWidth = COOLDOWN_WIDTH
 		this.ctx.strokeStyle = this.config.colors.cooldown
@@ -154,9 +158,36 @@ Ui.prototype.renderUnit = function(unit, alive) {
 	}
 }
 
-Ui.prototype.renderShadows = function(unit) {
-	// return;
-	this.ctx.fillStyle = 'yellow';
+var canvasA = document.createElement("canvas");
+var canvasB = document.createElement("canvas");
+Ui.prototype.renderShadows = function(units) {
+	// XXX handle this case in some other manner?
+	if (!units.length)
+		return;
+
+	var useCanvas = function(canvas, renderer) {
+		canvas.width = this.ctx.canvas.width;
+		canvas.height = this.ctx.canvas.height;
+		renderer.call(this, canvas.getContext('2d'));
+		return canvas;
+	}.bind(this);
+
+	var baseCanvas = useCanvas(canvasA, function(ctx) {
+		this.renderShadowsForUnit(ctx, units[0]);
+	});
+	var ctx = baseCanvas.getContext('2d');
+	ctx.globalCompositeOperation = "destination-in";
+	for (var i = 1; i < units.length; ++i) {
+		var otherCanvas = useCanvas(canvasB, function(ctx) {
+			this.renderShadowsForUnit(ctx, units[i]);
+		});
+		ctx.drawImage(otherCanvas, 0, 0);
+	}
+	this.ctx.drawImage(baseCanvas, 0, 0);
+}
+
+Ui.prototype.renderShadowsForUnit = function(ctx, unit) {
+	ctx.fillStyle = '#002200';
 	var unitpos = {
 		x: unit.position.x * UI_RENDER_FACTOR,
 		y: unit.position.y * UI_RENDER_FACTOR
@@ -191,13 +222,13 @@ Ui.prototype.renderShadows = function(unit) {
 					}
 				}
 
-				this.renderShadow(unitpos, points[besti], points[bestj]);
+				this.renderShadowForUnit(ctx, unitpos, points[besti], points[bestj]);
 			}
 		}
 	}
 }
 
-Ui.prototype.renderShadow = function(base, a, b) {
+Ui.prototype.renderShadowForUnit = function(ctx, base, a, b) {
 	var factor = 300;
 	var a2 = {
 		x: (a.x - base.x) * factor + base.x,
@@ -207,11 +238,11 @@ Ui.prototype.renderShadow = function(base, a, b) {
 		x: (b.x - base.x) * factor + base.x,
 		y: (b.y - base.y) * factor + base.y,
 	};
-	this.ctx.moveTo(a2.x, a2.y);
-	this.ctx.lineTo(b2.x, b2.y);
-	this.ctx.lineTo(b.x, b.y);
-	this.ctx.lineTo(a.x, a.y);
-	this.ctx.fill();
+	ctx.moveTo(a2.x, a2.y);
+	ctx.lineTo(b2.x, b2.y);
+	ctx.lineTo(b.x, b.y);
+	ctx.lineTo(a.x, a.y);
+	ctx.fill();
 }
 
 Ui.prototype.precomputeDots = function(maxN) {
@@ -232,8 +263,8 @@ Ui.prototype.drawDots = function(x, y, n, radiusFromPlayer, dotRadius) {
 	for (var i = 0; i < this.dots[n].length; i++) {
 		this.ctx.beginPath()
 		this.ctx.arc(x + radiusFromPlayer * this.dots[n][i][0],
-			         y + radiusFromPlayer * this.dots[n][i][1], 
-			         dotRadius, 0, Math.PI*2, false)
+		             y + radiusFromPlayer * this.dots[n][i][1],
+		             dotRadius, 0, Math.PI*2, false)
 		this.ctx.fill()
 	}
 }
