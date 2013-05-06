@@ -103,16 +103,18 @@ Runner.prototype.addLineEvents = function(lineevents) {
 	}
 }
 
-Runner.prototype.display = function(text) {
+Runner.prototype.display = function(text, fade) {
 	this.flashtext.style.transition = "none"
 	this.flashtext.style.opacity = 1
 	this.flashtext.innerHTML = text
 
 	var that = this
-	setTimeout(function() {
-		that.flashtext.style.transition = ""
-		that.flashtext.style.opacity = 0
-	}, 1000)
+	if(fade) {
+		setTimeout(function() {
+			that.flashtext.style.transition = ""
+			that.flashtext.style.opacity = 0
+		}, 1000)
+	}
 }
 
 Runner.prototype.preparemap = function(loadData) {
@@ -139,7 +141,7 @@ Runner.prototype.preparemap = function(loadData) {
 }
 
 Runner.prototype.prepareloop = function(clockAdjustment) {
-	this.display("Connected")		// Should do countdown
+	this.display("Connected", true)		// Should do countdown
 
 	var that = this
 	var canvas = this.canvas
