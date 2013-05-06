@@ -45,7 +45,7 @@ html, body, .content, .fullscreen-container, .canvas-wrapper {
 	height: 100%;
 }
 
-.game-container {
+.everything-container {
 	height: 70%;
 	user-select: none;
 	-moz-user-select: -moz-none;

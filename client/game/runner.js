@@ -192,7 +192,7 @@ function initialize() {
 			2: "move"
 		},
 	}
-	var container = document.querySelector(".game-container");
+	var container = document.querySelector(".everything-container");
 	runner = new Runner(container, config)
 }
 initialize()
