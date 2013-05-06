@@ -41,7 +41,7 @@ body {
 	font-weight: 400;
 }
 
-html, body, .content, .fullscreen-container, .canvas-wrapper {
+html, body, .content, .fullscreen-container, .game-container {
 	height: 100%;
 }
 
@@ -52,7 +52,7 @@ html, body, .content, .fullscreen-container, .canvas-wrapper {
 	-webkit-user-select: none;
 }
 
-.canvas-wrapper {
+.game-container {
 	text-align: center;
 }
 
@@ -66,7 +66,7 @@ html, body, .content, .fullscreen-container, .canvas-wrapper {
 	display: table;
 	height: 100%;
 }
-.fullscreen-container:-moz-full-screen > .canvas-wrapper {
+.fullscreen-container:-moz-full-screen > .game-container {
 	display: table-cell;
 	vertical-align: middle;
 }
@@ -77,7 +77,7 @@ html, body, .content, .fullscreen-container, .canvas-wrapper {
 	display: table;
 	height: 100%;
 }
-.fullscreen-container:-webkit-full-screen > .canvas-wrapper {
+.fullscreen-container:-webkit-full-screen > .game-container {
 	display: table-cell;
 	vertical-align: middle;
 }
