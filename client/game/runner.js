@@ -3,7 +3,7 @@ function Runner(container, config) {
 	this.container = container
 	this.config = config
 
-	this.lobby = this.container.querySelector(".lobby")
+	this.flashtext = this.container.querySelector(".flashtext")
 	
 	var actualContainer = container.querySelector(".fullscreen-container")
 	function mayresize() {
@@ -114,14 +114,14 @@ Runner.prototype.addLineEvents = function(lineevents) {
 }
 
 Runner.prototype.display = function(text) {
-	this.lobby.style.transition = "none"
-	this.lobby.style.opacity = 1
-	this.lobby.innerHTML = text
+	this.flashtext.style.transition = "none"
+	this.flashtext.style.opacity = 1
+	this.flashtext.innerHTML = text
 
 	var that = this
 	setTimeout(function() {
-		that.lobby.style.transition = ""
-		that.lobby.style.opacity = 0
+		that.flashtext.style.transition = ""
+		that.flashtext.style.opacity = 0
 	}, 1000)
 }
 

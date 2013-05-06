@@ -36,8 +36,7 @@ body {
 	font-family: 'Ubuntu mono', monospace;
 }
 
-.lobby {
-	text-align: center;
+.flashtext {
 	transition: opacity 3s ease-out;
 	font-weight: 400;
 }
