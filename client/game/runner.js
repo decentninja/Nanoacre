@@ -84,6 +84,9 @@ Runner.prototype.run = function() {
 	else {
 		var wsServer = GetParams["ws"] || location.host
 		var lobby = GetParams["lobby"] || "default"
+		if(lobby != "default") {
+			this.display("Share this url to play with friends", false)
+		}
 		socket = new WebSocket("ws://" + wsServer + "/ws?custom=" + lobby)
 		var that = this
 		socket.onmessage = function(e) {
