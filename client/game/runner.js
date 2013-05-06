@@ -1,14 +1,9 @@
-function Runner(socket, container, config, loadData) {
+function Runner(container, config) {
 	var canvas = this.canvas = container.querySelector("canvas")
 	this.container = container
-	var canvas_context = canvas.getContext('2d')
 	this.config = config
 
-	loadData.Field.width = loadData.Field.Tiles[0].length
-	loadData.Field.height = loadData.Field.Tiles.length
-	canvas.width = loadData.Field.width * TILE_RENDER_SIZE
-	canvas.height = loadData.Field.height * TILE_RENDER_SIZE
-	this.real_map_width = canvas.width
+	this.lobby = this.container.querySelector(".lobby")
 	
 	var actualContainer = container.querySelector(".fullscreen-container")
 	function mayresize() {
@@ -39,21 +34,9 @@ function Runner(socket, container, config, loadData) {
 	mayresize()
 	window.onresize = mayresize
 
-	this.eventqueue = []
-
-	this.ui = new Ui(canvas_context, config, loadData)
-	this.game = new Game(loadData.Field, config, this.ui)
-	if (socket)
-		this.network = new Network(socket, this.eventqueue, 10)
-	else
-		this.network = new MockNetwork();
-}
-
-Runner.prototype.run = function() {
-	var that = this
-	var fullscreenButton = this.container.querySelector(".fullscreen-button")
+	var fullscreenButton = container.querySelector(".fullscreen-button")
 	fullscreenButton.addEventListener("click", function() {
-		var el = that.container.querySelector(".fullscreen-container")
+		var el = container.querySelector(".fullscreen-container")
 		if (el.requestFullscreen) {
 			el.requestFullscreen()
 		} else if (el.webkitRequestFullScreen) {
@@ -61,8 +44,60 @@ Runner.prototype.run = function() {
 		} else if (el.mozRequestFullScreen) {
 			el.mozRequestFullScreen()
 		}
+		mayresize()
 	})
 
+	if(debug) {
+		var loadData = {
+			Id: 0,
+			Field: {
+				Tiles: [
+					[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+					[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+					[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+					[0,0,0,1,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0],
+					[0,100,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,101,0],
+					[0,100,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,101,0],
+					[0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,1,0,0,0],
+					[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+					[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+					[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+				]
+			}
+		}
+		this.run(loadData);
+	}
+	else {
+		var wsServer = GetParams["ws"] || location.host;
+		socket = new WebSocket("ws://" + wsServer + "/ws")
+		var that = this
+		socket.onmessage = function(e) {
+			var loadData = JSON.parse(e.data)
+			console.log(loadData)
+			that.run(loadData)
+		}
+	}
+
+	this.eventqueue = []
+}
+
+Runner.prototype.run = function(loadData) {
+	var canvas_context = this.canvas.getContext('2d')
+	loadData.Field.width = loadData.Field.Tiles[0].length
+	loadData.Field.height = loadData.Field.Tiles.length
+	this.canvas.width = loadData.Field.width * TILE_RENDER_SIZE
+	this.canvas.height = loadData.Field.height * TILE_RENDER_SIZE
+	window.onresize()
+
+	this.ui = new Ui(canvas_context, this.config, loadData)
+	this.game = new Game(loadData.Field, this.config, this.ui)
+	if (socket)
+		this.network = new Network(socket, this.eventqueue, 10)
+	else
+		this.network = new MockNetwork();
+
+	this.real_map_width = this.canvas.width
+	var that = this
 	this.network.takeOverSocket()
 	this.network.ready(function(clockAdjustment) {
 		that.startLoop(clockAdjustment)
@@ -78,10 +113,21 @@ Runner.prototype.addLineEvents = function(lineevents) {
 	}
 }
 
+Runner.prototype.display = function(text) {
+	this.lobby.style.transition = "none"
+	this.lobby.style.opacity = 1
+	this.lobby.innerHTML = text
+
+	var that = this
+	setTimeout(function() {
+		that.lobby.style.transition = ""
+		that.lobby.style.opacity = 0
+	}, 1000)
+}
+
 Runner.prototype.startLoop = function(clockAdjustment) {
-	var lobby = this.container.querySelector(".lobby")
-	lobby.style.setProperty("opacity", "0")
-	lobby.innerHTML = "Connected"
+	this.display("Connected")
+
 	var that = this
 	var canvas = this.canvas
 	this.canvas.onmousedown = function(ev) {
@@ -119,9 +165,11 @@ Runner.prototype.loop = function() {
 	requestAnimationFrame(this.loop.bind(this))
 }
 
-var runner; // for debugging
+// For debug
+var runner
+var socket = null
 
-function initializeGame(loadData) {
+function initialize() {
 	var config = {
 		colors: {
 			teams: [
@@ -131,7 +179,7 @@ function initializeGame(loadData) {
 				"#872237",
 				"#A1A1AA"
 			],
-			dead: "#262626", //TODO: check color
+			dead: "#262626", 	// TODO: check color
 			background: "#1D1D1D",
 			bullet: "#C82257",
 			selected: "#208BB5",
@@ -145,37 +193,6 @@ function initializeGame(loadData) {
 		},
 	}
 	var container = document.querySelector(".game-container");
-	runner = new Runner(socket, container, config, loadData)
-	runner.run()
+	runner = new Runner(container, config)
 }
-
-var socket = null;
-if (debug) {
-	var loadData = {
-		Id: 0,
-		Field: {
-			Tiles: [
-				[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-				[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-				[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-				[0,0,0,1,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0],
-				[0,100,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,101,0],
-				[0,100,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,101,0],
-				[0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,1,0,0,0],
-				[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-				[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-				[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-			]
-		}
-	}
-	initializeGame(loadData);
-}
-else {
-	var wsServer = GetParams["ws"] || location.host;
-	socket = new WebSocket("ws://" + wsServer + "/ws")
-	socket.onmessage = function(e) {
-		var loadData = JSON.parse(e.data)
-		console.log(loadData)
-		initializeGame(loadData)
-	}
-}
+initialize()

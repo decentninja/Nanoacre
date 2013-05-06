@@ -13,30 +13,33 @@ body {
 }
 
 .content > h1 {
+	padding-top: 3%;
+	height: 6%;
 	text-align: center;
 	font-weight: 700;
 	margin: 0px;
 }
 
 .settings {
-	text-align: right;
+	height: 10%;
+	text-align: center;
+	position: absolute;
+	width: 100%;
+	bottom: 0;
 }
 
 .settings > input[type=button] {
 	background-color: #208BB5;
 	border: none;
+	height: 17px;
 	border-radius: 4px;
 	font-family: 'Ubuntu mono', monospace;
 }
 
 .lobby {
 	text-align: center;
-	transition: all 3s;
+	transition: opacity 3s ease-out;
 	font-weight: 400;
-}
-
-h1 {
-	height: 10%;
 }
 
 html, body, .content, .fullscreen-container, .canvas-wrapper {
