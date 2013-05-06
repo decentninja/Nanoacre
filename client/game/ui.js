@@ -74,25 +74,6 @@ Ui.prototype.render = function(deltatime, state) {
 		this.renderUnit(state.units[i], true)
 	}
 
-	var shadowsFor = [];
-	for (var i = 0; i < state.units.length; i++) {
-		if (state.units[i].owning_player === this.playerId)
-			shadowsFor.push(state.units[i]);
-	}
-	this.renderShadows(shadowsFor);
-
-	// Map
-	this.ctx.fillStyle = this.config.colors.map
-	this.ctx.beginPath()
-	for (var i = 0; i < this.map.Tiles.length; i++) {
-		for(var j = 0; j < this.map.Tiles[0].length; j++) {
-			if(this.map.Tiles[i][j] == 1) {
-				this.ctx.rect(j*TILE_RENDER_SIZE, i*TILE_RENDER_SIZE, TILE_RENDER_SIZE, TILE_RENDER_SIZE)
-			}
-		}
-	}
-	this.ctx.fill();
-
 	// Bullets
 	this.ctx.strokeStyle = this.config.colors.bullet
 	this.ctx.lineWidth = BULLET_WIDTH;
@@ -107,6 +88,33 @@ Ui.prototype.render = function(deltatime, state) {
 			y - BULLET_LENGTH * bullet.direction.y)
 		this.ctx.stroke()
 	}
+
+	// Shadow
+	var shadowsFor = [];
+	for (var i = 0; i < state.units.length; i++) {
+		if (state.units[i].owning_player === this.playerId)
+			shadowsFor.push(state.units[i]);
+	}
+	this.ctx.save();
+	this.clipShadows(shadowsFor);
+	this.ctx.fillStyle = this.config.colors.shadow;
+	this.ctx.beginPath();
+	this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+	this.ctx.restore();
+
+	// Map
+	this.ctx.fillStyle = this.config.colors.map
+	this.ctx.beginPath()
+	for (var i = 0; i < this.map.Tiles.length; i++) {
+		for(var j = 0; j < this.map.Tiles[0].length; j++) {
+			if(this.map.Tiles[i][j] == 1) {
+				this.ctx.rect(j*TILE_RENDER_SIZE, i*TILE_RENDER_SIZE, TILE_RENDER_SIZE, TILE_RENDER_SIZE)
+			}
+		}
+	}
+	this.ctx.fill();
+	this.ctx.strokeStyle = "#ff0000";
+	this.ctx.stroke();
 
 }
 
@@ -158,77 +166,96 @@ Ui.prototype.renderUnit = function(unit, alive) {
 	}
 }
 
-var canvasA = document.createElement("canvas");
-var canvasB = document.createElement("canvas");
-Ui.prototype.renderShadows = function(units) {
+Ui.prototype.clipShadows = function(units) {
 	// XXX handle this case in some other manner?
 	if (!units.length)
 		return;
 
-	var useCanvas = function(canvas, renderer) {
-		canvas.width = this.ctx.canvas.width;
-		canvas.height = this.ctx.canvas.height;
-		renderer.call(this, canvas.getContext('2d'));
-		return canvas;
-	}.bind(this);
-
-	var baseCanvas = useCanvas(canvasA, function(ctx) {
-		this.renderShadowsForUnit(ctx, units[0]);
-	});
-	var ctx = baseCanvas.getContext('2d');
-	ctx.globalCompositeOperation = "destination-in";
-	for (var i = 1; i < units.length; ++i) {
-		var otherCanvas = useCanvas(canvasB, function(ctx) {
-			this.renderShadowsForUnit(ctx, units[i]);
-		});
-		ctx.drawImage(otherCanvas, 0, 0);
+	for (var i = 0; i < units.length; ++i) {
+		this.pathShadowsForUnit(units[i]);
 	}
-	this.ctx.drawImage(baseCanvas, 0, 0);
+	//this.ctx.clip();
 }
 
-Ui.prototype.renderShadowsForUnit = function(ctx, unit) {
-	ctx.fillStyle = '#002200';
+Ui.prototype.blocksLOS = function(y, x) {
+	if (y < 0 || y >= this.map.Tiles.length ||
+		x < 0 || x >= this.map.Tiles[0].length) {
+		return true;
+	}
+	return this.map.Tiles[y][x] == 1;
+}
+
+Ui.prototype.pathShadowsForUnit = function(unit) {
 	var unitpos = {
 		x: unit.position.x * UI_RENDER_FACTOR,
 		y: unit.position.y * UI_RENDER_FACTOR
 	};
 	var sz = TILE_RENDER_SIZE;
+//	console.log("started player")
+	this.ctx.beginPath();
 	for (var y = 0; y < this.map.Tiles.length; y++) {
 		for (var x = 0; x < this.map.Tiles[0].length; x++) {
 			var mx = x * sz;
 			var my = y * sz;
 			if (this.map.Tiles[y][x] == 1) {
-				var points = [
-					{x: mx, y: my},
-					{x: mx, y: my + sz},
-					{x: mx + sz, y: my},
-					{x: mx + sz, y: my + sz},
-				];
-				var angles = points.map(function(p) {
-					return Math.atan2(p.y - unitpos.y, p.x - unitpos.x);
-				});
-				var bestangle = 0, besti = 0, bestj = 0;
-				for (var i = 0; i < 4; ++i) {
-					for (var j = i+1; j < 4; ++j) {
-						var d = angles[i] - angles[j];
-						if (d < 0) d = -d;
-						d %= 2*Math.PI;
-						if (d >= Math.PI) d = 2*Math.PI - d;
-						if (d > bestangle) {
-							bestangle = d;
-							besti = i;
-							bestj = j;
+				var points = []
+				var horiBlocks = [this.blocksLOS(y, x-1), this.blocksLOS(y, x+1)];
+				var vertBlocks = [this.blocksLOS(y-1, x), this.blocksLOS(y+1, x)];
+
+				for (var i = 0; i < 2; ++i) {
+					for (var j = 0; j < 2; ++j) {
+						var onOtherSide = {
+							vert: (j == 0 && unitpos.y > my + sz) || (j == 1 && unitpos.y < my),
+							hori: (i == 0 && unitpos.x > mx + sz) || (i == 1 && unitpos.x < mx),
+						};
+						if (onOtherSide.vert && onOtherSide.hori) continue;
+						if (horiBlocks[i]) { //TODO: hide corners that are hidden but not inside a wall
+							if (onOtherSide.vert) continue;
+						}
+						if (vertBlocks[j]) {
+							if (onOtherSide.hori) continue;
+						}
+//						console.log("("+i+","+j+") pushed");
+						points.push({x: mx + i*sz, y: my + j*sz});
+					}
+				}
+				if (points.length < 2) continue;
+
+//				console.log(horiBlocks);
+//				console.log(vertBlocks);
+//				console.log(points);
+
+				var bestangle = 0, besti = 0, bestj = 1;
+				if (points.length > 2) {
+					var angles = points.map(function(p) {
+						return Math.atan2(p.y - unitpos.y, p.x - unitpos.x);
+					});
+					for (var i = 0; i < points.length; ++i) {
+						for (var j = i+1; j < points.length; ++j) {
+							var d = angles[i] - angles[j];
+							if (d < 0) d = -d;
+							d %= 2*Math.PI;
+							if (d >= Math.PI) d = 2*Math.PI - d;
+							if (d > bestangle) {
+								bestangle = d;
+								besti = i;
+								bestj = j;
+							}
 						}
 					}
 				}
 
-				this.renderShadowForUnit(ctx, unitpos, points[besti], points[bestj]);
+//				console.log(besti + ", " + bestj);
+
+				this.pathShadowForUnit(unitpos, points[besti], points[bestj]);
 			}
 		}
 	}
+
+	this.ctx.clip();
 }
 
-Ui.prototype.renderShadowForUnit = function(ctx, base, a, b) {
+Ui.prototype.pathShadowForUnit = function(base, a, b) {
 	var factor = 300;
 	var a2 = {
 		x: (a.x - base.x) * factor + base.x,
@@ -238,11 +265,11 @@ Ui.prototype.renderShadowForUnit = function(ctx, base, a, b) {
 		x: (b.x - base.x) * factor + base.x,
 		y: (b.y - base.y) * factor + base.y,
 	};
-	ctx.moveTo(a2.x, a2.y);
-	ctx.lineTo(b2.x, b2.y);
-	ctx.lineTo(b.x, b.y);
-	ctx.lineTo(a.x, a.y);
-	ctx.fill();
+	this.ctx.moveTo(a2.x, a2.y);
+	this.ctx.lineTo(b2.x, b2.y);
+	this.ctx.lineTo(b.x, b.y);
+	this.ctx.lineTo(a.x, a.y);
+	this.ctx.closePath();
 }
 
 Ui.prototype.precomputeDots = function(maxN) {

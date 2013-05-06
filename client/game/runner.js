@@ -144,6 +144,7 @@ function initializeGame(loadData) {
 			],
 			dead: "#262626", //TODO: check color
 			background: "#1D1D1D",
+			shadow: "#000000", //TODO: check color
 			bullet: "#C82257",
 			selected: "#208BB5",
 			text: "#208BB5",
