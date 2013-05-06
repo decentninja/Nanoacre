@@ -57,6 +57,10 @@ function Runner(container, config) {
 		window.location = "?lobby=" + go
 	})
 
+	this.eventqueue = []
+}
+
+Runner.prototype.run = function() {
 	if(debug) {
 		var loadData = {
 			Id: 0,
@@ -75,7 +79,7 @@ function Runner(container, config) {
 				]
 			}
 		}
-		this.run(loadData);
+		this.preparemap(loadData);
 	}
 	else {
 		var wsServer = GetParams["ws"] || location.host;
@@ -84,34 +88,9 @@ function Runner(container, config) {
 		socket.onmessage = function(e) {
 			var loadData = JSON.parse(e.data)
 			console.log(loadData)
-			that.run(loadData)
+			that.preparemap(loadData)
 		}
 	}
-
-	this.eventqueue = []
-}
-
-Runner.prototype.run = function(loadData) {
-	var canvas_context = this.canvas.getContext('2d')
-	loadData.Field.width = loadData.Field.Tiles[0].length
-	loadData.Field.height = loadData.Field.Tiles.length
-	this.canvas.width = loadData.Field.width * TILE_RENDER_SIZE
-	this.canvas.height = loadData.Field.height * TILE_RENDER_SIZE
-	window.onresize()
-
-	this.ui = new Ui(canvas_context, this.config, loadData)
-	this.game = new Game(loadData.Field, this.config, this.ui)
-	if (socket)
-		this.network = new Network(socket, this.eventqueue, 10)
-	else
-		this.network = new MockNetwork();
-
-	this.real_map_width = this.canvas.width
-	var that = this
-	this.network.takeOverSocket()
-	this.network.ready(function(clockAdjustment) {
-		that.startLoop(clockAdjustment)
-	})
 }
 
 Runner.prototype.addLineEvents = function(lineevents) {
@@ -130,13 +109,34 @@ Runner.prototype.display = function(text) {
 
 	var that = this
 	setTimeout(function() {
-		that.flashtext.style.transition = ""
 		that.flashtext.style.opacity = 0
 	}, 1000)
+
+Runner.prototype.preparemap = function(loadData) {
+	var canvas_context = this.canvas.getContext('2d')
+	loadData.Field.width = loadData.Field.Tiles[0].length
+	loadData.Field.height = loadData.Field.Tiles.length
+	this.canvas.width = loadData.Field.width * TILE_RENDER_SIZE
+	this.canvas.height = loadData.Field.height * TILE_RENDER_SIZE
+	window.onresize()
+
+	this.ui = new Ui(canvas_context, this.config, loadData)
+	this.game = new Game(loadData.Field, this.config, this.ui)
+	if (socket)
+		this.network = new Network(socket, this.eventqueue, 10)
+	else
+		this.network = new MockNetwork();
+
+	this.real_map_width = this.canvas.width
+	var that = this
+	this.network.takeOverSocket()
+	this.network.ready(function(clockAdjustment) {
+		that.prepareloop(clockAdjustment)
+	})
 }
 
-Runner.prototype.startLoop = function(clockAdjustment) {
-	this.display("Connected")
+Runner.prototype.prepareloop = function(clockAdjustment) {
+	this.display("Connected")		// Should do countdown
 
 	var that = this
 	var canvas = this.canvas
@@ -204,5 +204,6 @@ function initialize() {
 	}
 	var container = document.querySelector(".everything-container");
 	runner = new Runner(container, config)
+	runner.run()
 }
 initialize()
