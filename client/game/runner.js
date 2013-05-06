@@ -47,6 +47,16 @@ function Runner(container, config) {
 		mayresize()
 	})
 
+	var customgameButton = container.querySelector(".create-lobby")
+	customgameButton.addEventListener("click", function() {
+		var things = "abcdefghijklmnopqrstuvwxyz1234567890"
+		var go = ""
+		for(var i = 0; i < 10; i++) {
+			go += things.charAt(Math.floor(Math.random() * things.length))
+		}
+		window.location = "?lobby=" + go
+	})
+
 	if(debug) {
 		var loadData = {
 			Id: 0,
