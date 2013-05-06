@@ -82,8 +82,9 @@ Runner.prototype.run = function() {
 		this.preparemap(loadData);
 	}
 	else {
-		var wsServer = GetParams["ws"] || location.host;
-		socket = new WebSocket("ws://" + wsServer + "/ws")
+		var wsServer = GetParams["ws"] || location.host
+		var lobby = GetParams["lobby"] || "default"
+		socket = new WebSocket("ws://" + wsServer + "/ws?custom=" + lobby)
 		var that = this
 		socket.onmessage = function(e) {
 			var loadData = JSON.parse(e.data)
@@ -109,8 +110,10 @@ Runner.prototype.display = function(text) {
 
 	var that = this
 	setTimeout(function() {
+		that.flashtext.style.transition = ""
 		that.flashtext.style.opacity = 0
 	}, 1000)
+}
 
 Runner.prototype.preparemap = function(loadData) {
 	var canvas_context = this.canvas.getContext('2d')
