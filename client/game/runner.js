@@ -1,3 +1,5 @@
+var COUNT_DOWN = 3
+
 function Runner(container, config) {
 	var canvas = this.canvas = container.querySelector("canvas")
 	this.container = container
@@ -139,13 +141,30 @@ Runner.prototype.preparemap = function(loadData) {
 	var that = this
 	this.network.takeOverSocket()
 	this.network.ready(function(clockAdjustment) {
-		that.prepareloop(clockAdjustment)
+		that.display("Connected", true)
+		if(debug) {
+			that.prepareloop(clockAdjustment)
+		} else {
+			that.game.step(0, [])
+			that.countdown(COUNT_DOWN, function() {
+				that.prepareloop(clockAdjustment)
+			})
+		}
 	})
 }
 
-Runner.prototype.prepareloop = function(clockAdjustment) {
-	this.display("Connected", true)		// Should do countdown
+Runner.prototype.countdown = function(from, callback) {
+	// Not secure...
+	var that = this
+	for(var i = from; i != 0; i--) (function(i) {
+		setTimeout(function() {
+			that.display(i, i <= 2)
+		}, 1000 * (from - i))
+	})(i)
+	setTimeout(callback, from * 1000)
+}
 
+Runner.prototype.prepareloop = function(clockAdjustment) {
 	var that = this
 	var canvas = this.canvas
 	this.canvas.onmousedown = function(ev) {
