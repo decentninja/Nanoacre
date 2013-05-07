@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"log"
+	"time"
 )
 
 const (
@@ -11,15 +12,17 @@ const (
 	LOAD           = "load"
 	LOSS           = "loss"
 	WIN            = "win"
+	DRAW           = "draw"
 	REMATCH_ACCEPT = "rematchAccepted"
 )
 
 type game struct {
-	id           int
-	players      []*player
-	ch           chan *message
-	parentCustom *custom
-	shouldQuit   bool
+	id             int
+	players        []*player
+	ch             chan *message
+	parentCustom   *custom
+	shouldQuit     bool
+	waitingForDraw bool
 }
 
 type loadData struct {
@@ -101,7 +104,7 @@ func (g *game) handleMessage(mess *message) {
 	case "dead":
 		mess.p.state.dead = true
 		log.Printf("Game %s: a player has died.", g.str())
-		g.endIfAllDead()
+		time.AfterFunc(time.Second, func() { g.endIfAllDead() })
 
 	case "rematch":
 		mess.p.state.wantRegame = true
@@ -150,14 +153,24 @@ func (g *game) endIfAllDead() {
 		}
 	}
 
-	log.Printf("Game %s: gameover, sending win and loss.\n", g.str())
-
-	for _, p := range g.players {
-		if p.state.dead {
-			p.send(LOSS)
-		} else {
-			p.send(WIN)
-		}
+	if !g.waitingForDraw {
+		g.waitingForDraw = true
+		log.Printf("Game %s: waiting in case of a draw.\n", g.str())
+		time.AfterFunc(time.Second, func() {
+			log.Printf("Game %s: gameover, sending win and loss.\n", g.str())
+			if alive == 1 {
+				for _, p := range g.players {
+					if p.state.dead {
+						p.send(LOSS)
+					} else {
+						p.send(WIN)
+					}
+				}
+			} else {
+				g.sendToAll(DRAW)
+			}
+			g.waitingForDraw = false
+		})
 	}
 }
 

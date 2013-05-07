@@ -47,6 +47,7 @@
 			case "disconnect":
 			case "loss":
 			case "win":
+			case "draw":
 				this.endGameFunc(message)
 				break;
 

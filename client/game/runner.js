@@ -168,6 +168,10 @@ Runner.prototype.preparemap = function(loadData) {
 				str = "You lost"
 				break
 
+			case "draw":
+				str = "Draw"
+				break
+
 			case "disconnect":
 				str = 'Someone disconnected, this game has ended.'
 				break
