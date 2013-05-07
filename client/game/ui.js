@@ -113,9 +113,6 @@ Ui.prototype.render = function(deltatime, state) {
 		}
 	}
 	this.ctx.fill();
-	this.ctx.strokeStyle = "#ff0000";
-	this.ctx.stroke();
-
 }
 
 Ui.prototype.renderUnit = function(unit, alive) {
@@ -167,14 +164,9 @@ Ui.prototype.renderUnit = function(unit, alive) {
 }
 
 Ui.prototype.clipShadows = function(units) {
-	// XXX handle this case in some other manner?
-	if (!units.length)
-		return;
-
 	for (var i = 0; i < units.length; ++i) {
 		this.pathShadowsForUnit(units[i]);
 	}
-	//this.ctx.clip();
 }
 
 Ui.prototype.blocksLOS = function(y, x) {
@@ -191,7 +183,6 @@ Ui.prototype.pathShadowsForUnit = function(unit) {
 		y: unit.position.y * UI_RENDER_FACTOR
 	};
 	var sz = TILE_RENDER_SIZE;
-//	console.log("started player")
 	this.ctx.beginPath();
 	for (var y = 0; y < this.map.Tiles.length; y++) {
 		for (var x = 0; x < this.map.Tiles[0].length; x++) {
@@ -215,15 +206,11 @@ Ui.prototype.pathShadowsForUnit = function(unit) {
 						if (vertBlocks[j]) {
 							if (onOtherSide.hori) continue;
 						}
-//						console.log("("+i+","+j+") pushed");
 						points.push({x: mx + i*sz, y: my + j*sz});
 					}
 				}
 				if (points.length < 2) continue;
 
-//				console.log(horiBlocks);
-//				console.log(vertBlocks);
-//				console.log(points);
 
 				var bestangle = 0, besti = 0, bestj = 1;
 				if (points.length > 2) {
@@ -245,8 +232,6 @@ Ui.prototype.pathShadowsForUnit = function(unit) {
 					}
 				}
 
-//				console.log(besti + ", " + bestj);
-
 				this.pathShadowForUnit(unitpos, points[besti], points[bestj]);
 			}
 		}
@@ -265,6 +250,15 @@ Ui.prototype.pathShadowForUnit = function(base, a, b) {
 		x: (b.x - base.x) * factor + base.x,
 		y: (b.y - base.y) * factor + base.y,
 	};
+	if ( (b2.x-a2.x)*(b2.y+a2.y)
+		+(b.x -b2.x)*(b.y +b2.y)
+		+(a.x - b.x)*(a.y + b.y)
+		+(a2.x- a.x)*(a2.y+ a.y) < 0) {
+		var temp = b;
+		b = a; a = temp;
+		temp = b2;
+		b2 = a2; a2 = temp;
+	}
 	this.ctx.moveTo(a2.x, a2.y);
 	this.ctx.lineTo(b2.x, b2.y);
 	this.ctx.lineTo(b.x, b.y);
