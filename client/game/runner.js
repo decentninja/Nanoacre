@@ -88,6 +88,7 @@ Runner.prototype.run = function() {
 			this.display("Share this url to play with friends", false)
 		}
 		socket = this.socket = new WebSocket("ws://" + wsServer + "/ws?custom=" + lobby)
+		this.display("Waiting for another player...", false)
 		var that = this
 		this.socket.onmessage = this.socketOnMessageStartup.bind(this)
 	}
