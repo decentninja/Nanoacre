@@ -17,14 +17,14 @@ function Ui(canvas_context, config, loadData) {
 	this.ctx = canvas_context
 	this.config = config
 	this.map = loadData.Field
+	this.playerId = loadData.Id
 
 	this.deadUnits = []
-
-	this.playerId = loadData.Id
 	this.selection = []
 	this.ownedUnits = []
-
 	this.drawMode = 0
+
+	this.particlesystem = new Particlesystem(canvas_context)
 }
 
 Ui.prototype.registerInitialUnits = function(units) {
@@ -43,7 +43,21 @@ Ui.prototype.render = function(deltatime, state) {
 				if (state.units[i].id == unit.id)
 					return
 			}
-
+			var killingdirection = {x: 0, y: 0}
+			var diff = null
+			this.lastState.bullets.forEach(function(bullet) {	// XXX Hack killing bullet
+				var newdiff = Math.abs(bullet.position.x - unit.position.x + bullet.position.y - bullet.position.y)
+				if(newdiff < diff || diff == null) {
+					killingdirection = bullet.direction
+					diff = newdiff
+				}
+			})
+			this.particlesystem.explosion(
+				unit.position.x * UI_RENDER_FACTOR, 
+				unit.position.y * UI_RENDER_FACTOR, 
+				this.config.colors.teams[unit.owning_player],
+				killingdirection
+			)
 			this.deadUnits.push(deepCopy(unit))
 		}, this)
 
@@ -87,6 +101,10 @@ Ui.prototype.render = function(deltatime, state) {
 			y - BULLET_LENGTH * bullet.direction.y)
 		this.ctx.stroke()
 	}
+
+	// Particles
+	this.particlesystem.update(deltatime)
+	this.particlesystem.render()
 
 	// Shadow
 	var shadowsFor = [];
