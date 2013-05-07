@@ -247,16 +247,6 @@ Runner.prototype.loop = function() {
 		}.bind(this), 1000)
 	}
 	requestAnimationFrame(this.loop.bind(this))
-
-	// XXX fps hack
-	++frames
-	if (!nextSecond)
-		nextSecond = newtime + 1000
-	if (newtime >= nextSecond) {
-		console.log(frames)
-		nextSecond += 1000
-		frames = 0
-	}
 }
 
 // For debug
