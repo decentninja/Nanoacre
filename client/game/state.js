@@ -23,3 +23,13 @@ function State(map) {
 		}
 	}
 }
+
+State.prototype.getRemainingPlayers = function() {
+	var players = []
+	this.units.forEach(function(unit) {
+		if(players.indexOf(unit.owning_player) == -1) {
+			players.push(unit.owning_player)
+		}
+	})
+	return players
+}

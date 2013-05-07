@@ -91,12 +91,12 @@ Runner.prototype.run = function() {
 		}
 		socket = this.socket = new WebSocket("ws://" + wsServer + "/ws?custom=" + lobby)
 		var that = this
-		socket.onmessage = function(e) {
-			var loadData = JSON.parse(e.data)
-			console.log(loadData)
-			that.preparemap(loadData)
-		}
+		this.socket.onmessage = this.socketOnMessageStartup.bind(this)
 	}
+}
+
+Runner.prototype.socketOnMessageStartup = function(e) {
+	this.preparemap(JSON.parse(e.data))
 }
 
 Runner.prototype.addLineEvents = function(lineevents) {
@@ -123,6 +123,7 @@ Runner.prototype.display = function(text, fade) {
 }
 
 Runner.prototype.preparemap = function(loadData) {
+	this.playerId = loadData.Id
 	var canvas_context = this.canvas.getContext('2d')
 	loadData.Field.width = loadData.Field.Tiles[0].length
 	loadData.Field.height = loadData.Field.Tiles.length
@@ -140,7 +141,7 @@ Runner.prototype.preparemap = function(loadData) {
 	this.real_map_width = this.canvas.width
 	var that = this
 	this.network.takeOverSocket()
-	this.network.ready(function(clockAdjustment) {
+	var startFunc = function(clockAdjustment) {
 		that.display("Connected", true)
 		if(debug) {
 			that.prepareloop(clockAdjustment)
@@ -150,7 +151,26 @@ Runner.prototype.preparemap = function(loadData) {
 				that.prepareloop(clockAdjustment)
 			})
 		}
-	})
+	}
+	var endFunc = function(condition) {
+		switch (condition) {
+			case "win":
+				that.display("You won!", false)
+				break
+
+			case "loss":
+				that.display("You lost", false)
+				break
+
+			case "disconnect":
+				that.display("Someone disconnected, this game has ended.", true)
+				break
+		}
+	}
+	var rematchFunc = function() {
+		this.socket.onmessage = this.socketOnMessageStartup.bind(this)
+	}
+	this.network.ready(startFunc, endFunc, rematchFunc)
 }
 
 Runner.prototype.countdown = function(from, callback) {
@@ -199,6 +219,15 @@ Runner.prototype.loop = function() {
 	var deltatime = newtime - this.lasttime
 	this.lasttime = newtime
 	this.game.step(deltatime, this.eventqueue)
+	if (!this.deadAlready && this.game.getRemainingPlayers().indexOf(this.playerId) == -1) {
+		setTimeout(function() { // XXX Hack...
+			if (!this.deadAlready && this.game.getRemainingPlayers().indexOf(this.playerId) == -1) {
+				this.deadAlready = true
+				this.network.send("dead")
+				this.display("You're dead.", false)
+			}
+		}.bind(this), 1000)
+	}
 	requestAnimationFrame(this.loop.bind(this))
 }
 

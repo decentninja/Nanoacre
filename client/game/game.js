@@ -29,3 +29,7 @@ Game.prototype.step = function(deltatime, eventqueue) {
 Game.prototype.getNextFrame = function() {
 	return this.timeline.getNextFrame();
 };
+
+Game.prototype.getRemainingPlayers = function() {
+	return this.timeline.getCurrentState().getRemainingPlayers()
+}

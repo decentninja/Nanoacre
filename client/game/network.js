@@ -23,8 +23,10 @@
 		}
 	}
 
-	Network.prototype.ready = function(startFunction) {
+	Network.prototype.ready = function(startFunction, endFunction, rematchFunc) {
 		this.startFunc = startFunction
+		this.endGameFunc = endFunction
+		this.rematchFunc = rematchFunc
 		this.latency = []
 		this.send("ready")
 	}
@@ -40,7 +42,16 @@
 
 			case "start":
 				this.startFunc(this.latency)
-				this.startFunc = null
+				break;
+
+			case "disconnect":
+			case "loss":
+			case "win":
+				this.endGameFunc(message)
+				break;
+
+			case "rematchAccepted":
+				this.rematchFunc()
 				break;
 
 			default:
