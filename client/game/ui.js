@@ -1,7 +1,7 @@
 "use strict";
 
 var BULLET_LENGTH = 50;
-var BULLET_WIDTH = 3;
+var BULLET_WIDTH = UI_RENDER_FACTOR*BULLET_RADIUS;
 
 var SELECTED_WIDTH = 3;
 
@@ -23,7 +23,6 @@ function Ui(canvas_context, config, loadData) {
 	this.playerId = loadData.Id
 	this.selection = []
 	this.ownedUnits = []
-	this.shiftDown = false
 
 	this.drawMode = 0
 }
@@ -153,12 +152,18 @@ Ui.prototype.renderUnit = function(unit, alive) {
 		this.ctx.strokeStyle = this.config.colors.selected
 		this.ctx.stroke()
 	}
-
-	if (alive && unit.shooting_cooldown !== 0) {
+	
+	var onCooldown = unit.shooting_cooldown != 0
+	var shotsFired = unit.shots_fired != 0
+	if (alive && (onCooldown || shotsFired)) {
 		this.ctx.beginPath()
 		this.ctx.lineWidth = COOLDOWN_WIDTH
 		this.ctx.strokeStyle = this.config.colors.cooldown
-		this.ctx.arc(x, y, COOLDOWN_RADIUS, -Math.PI/2, (1 - unit.shooting_cooldown/SHOOTING_COOLDOWN)*Math.PI*2 - Math.PI/2, true)
+		if (onCooldown) {
+			this.ctx.arc(x, y, COOLDOWN_RADIUS, -Math.PI/2, (unit.shooting_cooldown/SHOOTING_COOLDOWN)*Math.PI*2 - Math.PI/2, false)
+		} else {
+			this.ctx.arc(x, y, COOLDOWN_RADIUS, -Math.PI/2, (unit.shots_fired/MAX_SHOTS)*Math.PI*2 - Math.PI/2, false)
+		}
 		this.ctx.stroke()
 	}
 }
