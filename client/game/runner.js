@@ -235,7 +235,6 @@ Runner.prototype.prepareloop = function(clockAdjustment) {
 	this.looprunning = true
 }
 
-var nextSecond, frames = 0
 Runner.prototype.loop = function() {
 	var newtime = performance.now()
 	var deltatime = newtime - this.lasttime
