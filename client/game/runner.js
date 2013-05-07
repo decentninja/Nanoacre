@@ -153,22 +153,36 @@ Runner.prototype.preparemap = function(loadData) {
 		}
 	}
 	var endFunc = function(condition) {
+		var newgamebutton = '<input class="newgame" type="button" value="New game"> '
+		var rematchbutton = ' <input class="rematch" type="button" value="Rematch">'
+		var str
 		switch (condition) {
 			case "win":
-				that.display("You won!", false)
+				str = "You won!"
 				break
 
 			case "loss":
-				that.display("You lost", false)
+				str = "You lost"
 				break
 
 			case "disconnect":
-				that.display("Someone disconnected, this game has ended.", true)
+				str = 'Someone disconnected, this game has ended.'
 				break
+		}
+		that.display(newgamebutton + str + rematchbutton, false)
+		var rematch = that.container.querySelector(".rematch")
+		rematch.onclick = function() {
+			that.network.send("rematch")
+		}
+		that.container.querySelector(".newgame").onclick = function() {
+			document.location.reload(false)
+		}
+		if (condition == "disconnect") {
+			rematch.setAttribute("disabled", true)
 		}
 	}
 	var rematchFunc = function() {
-		this.socket.onmessage = this.socketOnMessageStartup.bind(this)
+		that.socket.onmessage = that.socketOnMessageStartup.bind(that)
 	}
 	this.network.ready(startFunc, endFunc, rematchFunc)
 }

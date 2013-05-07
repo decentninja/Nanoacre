@@ -28,7 +28,7 @@ body {
 	bottom: 0;
 }
 
-.settings > input[type=button] {
+input[type=button] {
 	background-color: #208BB5;
 	border: none;
 	height: 25px;
@@ -41,7 +41,7 @@ body {
 	transition: all .1s ease;
 }
 
-.settings > input[type=button]:active {
+input[type=button]:active {
     box-shadow: none;
     position: relative;
     top: 2px;
