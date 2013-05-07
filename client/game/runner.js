@@ -153,6 +153,10 @@ Runner.prototype.preparemap = function(loadData) {
 		}
 	}
 	var endFunc = function(condition) {
+		that.canvas.onmousedown = null
+		window.onkeydown = null
+		window.onkeyup = null
+
 		var newgamebutton = '<input class="newgame" type="button" value="New game"> '
 		var rematchbutton = ' <input class="rematch" type="button" value="Rematch">'
 		var str
