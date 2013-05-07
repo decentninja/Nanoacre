@@ -34,12 +34,31 @@ func (g *game) gatherPlayers() {
 		g.players = append(g.players, p)
 		log.Printf("Game %s has %d/%d players.\n", g.str(), len(g.players), g.parentCustom.numPlayers)
 		if len(g.players) == g.parentCustom.numPlayers {
-			break
+			for len(g.ch) > 0 {
+				m := <-g.ch
+				if m.data == "disconnect" {
+					g.removePlayer(m.p)
+					log.Printf("Game %s has removed one of its players as it had disconnected.\n", g.str())
+				}
+			}
+			if len(g.players) == g.parentCustom.numPlayers {
+				break
+			}
 		}
 	}
+
 	g.parentCustom.spawnNewGame()
 	g.load()
 	g.run()
+}
+
+func (g *game) removePlayer(p *player) {
+	for i, pl := range g.players {
+		if pl == p {
+			g.players[i] = g.players[len(g.players)-1]
+			g.players = g.players[0 : len(g.players)-1]
+		}
+	}
 }
 
 func (g *game) load() {
