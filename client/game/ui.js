@@ -112,12 +112,14 @@ Ui.prototype.render = function(deltatime, state) {
 		if (state.units[i].owning_player === this.playerId)
 			shadowsFor.push(state.units[i]);
 	}
-	this.ctx.save();
-	this.clipShadows(shadowsFor);
-	this.ctx.fillStyle = this.config.colors.shadow;
-	this.ctx.beginPath();
-	this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-	this.ctx.restore();
+	if (shadowsFor.length > 0) {
+		this.ctx.save();
+		this.clipShadows(shadowsFor);
+		this.ctx.fillStyle = this.config.colors.shadow;
+		this.ctx.beginPath();
+		this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+		this.ctx.restore();
+	}
 
 	// Map
 	this.ctx.fillStyle = this.config.colors.map
