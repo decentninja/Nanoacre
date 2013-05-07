@@ -1,8 +1,5 @@
 "use strict";
 
-var BULLET_LENGTH = 50;
-var BULLET_WIDTH = UI_RENDER_FACTOR*BULLET_RADIUS;
-
 var SELECTED_WIDTH = 3;
 
 var COOLDOWN_RADIUS = 3;
@@ -12,6 +9,9 @@ var DOT_DISTANCE = Math.PI/8
 
 var TILE_RENDER_SIZE = 40;
 var UI_RENDER_FACTOR = TILE_RENDER_SIZE / TILE_SIZE;
+
+var BULLET_LENGTH = 50;
+var BULLET_WIDTH = UI_RENDER_FACTOR * BULLET_RADIUS;
 
 function Ui(canvas_context, config, loadData) {
 	this.ctx = canvas_context
