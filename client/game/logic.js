@@ -4,6 +4,7 @@ var PLAYER_RADIUS = 256;
 var BULLET_RADIUS = 90;
 var SHOOTING_COOLDOWN = 3 * 60;
 var MAX_SHOTS = 3;
+var RELOAD_COOLDOWN = SHOOTING_COOLDOWN * 2
 
 ;(function() {
 "use strict";
@@ -138,13 +139,13 @@ Logic.prototype.step = function(state, events) {
 
 			case "fire":
 				state.units.forEach(function(u) {
-					if (u.id === ev.who && u.shooting_cooldown == 0) {
+					if (u.id === ev.who && u.shooting_cooldown <= (MAX_SHOTS -1) * SHOOTING_COOLDOWN / MAX_SHOTS) {
 						var owning_player = u.owning_player;
 						var pos = deepCopy(u.position);
-						++u.shots_fired;
-						if (u.shots_fired == MAX_SHOTS) {
-							u.shooting_cooldown = SHOOTING_COOLDOWN;
-							u.shots_fired = 0;
+						u.shooting_cooldown += SHOOTING_COOLDOWN / MAX_SHOTS
+						u.reload_cooldown = RELOAD_COOLDOWN
+						if(u.shooting_cooldown >= SHOOTING_COOLDOWN) {
+							u.reload_cooldown = 0
 						}
 						var x = ev.towards.x - pos.x;
 						var y = ev.towards.y - pos.y;
@@ -191,8 +192,10 @@ Logic.prototype.step = function(state, events) {
 	});
 	state.units.forEach(this.moveUnit.bind(this));
 	state.units.forEach(function(u) {
-		if(u.shooting_cooldown) 
+		if(u.shooting_cooldown && u.reload_cooldown == 0) 
 			--u.shooting_cooldown;
+		if(u.reload_cooldown) 
+			--u.reload_cooldown;
 	});
 	return state;
 }

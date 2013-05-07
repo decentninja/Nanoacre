@@ -17,7 +17,7 @@ function State(map) {
 					position: position,
 					target: position,
 					shooting_cooldown: 0,
-					shots_fired: 0,
+					reload_cooldown: 0,
 				})
 				this.nunits++;
 			}

@@ -173,17 +173,11 @@ Ui.prototype.renderUnit = function(unit, alive) {
 		this.ctx.stroke()
 	}
 	
-	var onCooldown = unit.shooting_cooldown != 0
-	var shotsFired = unit.shots_fired != 0
-	if (alive && (onCooldown || shotsFired)) {
+	if (alive && unit.shooting_cooldown != 0) {
 		this.ctx.beginPath()
 		this.ctx.lineWidth = COOLDOWN_WIDTH
 		this.ctx.strokeStyle = this.config.colors.cooldown
-		if (onCooldown) {
-			this.ctx.arc(x, y, COOLDOWN_RADIUS, -Math.PI/2, (unit.shooting_cooldown/SHOOTING_COOLDOWN)*Math.PI*2 - Math.PI/2 + 0.2, false)
-		} else {
-			this.ctx.arc(x, y, COOLDOWN_RADIUS, -Math.PI/2, (unit.shots_fired/MAX_SHOTS)*Math.PI*2 - Math.PI/2, false)
-		}
+		this.ctx.arc(x, y, COOLDOWN_RADIUS, -Math.PI/2, (unit.shooting_cooldown/SHOOTING_COOLDOWN)*Math.PI*2 - Math.PI/2 + 0.2, false)
 		this.ctx.stroke()
 	}
 }
