@@ -231,6 +231,7 @@ Runner.prototype.prepareloop = function(clockAdjustment) {
 	this.loop();
 }
 
+var nextSecond, frames = 0
 Runner.prototype.loop = function() {
 	var newtime = performance.now()
 	var deltatime = newtime - this.lasttime
@@ -246,6 +247,16 @@ Runner.prototype.loop = function() {
 		}.bind(this), 1000)
 	}
 	requestAnimationFrame(this.loop.bind(this))
+
+	// XXX fps hack
+	++frames
+	if (!nextSecond)
+		nextSecond = newtime + 1000
+	if (newtime >= nextSecond) {
+		console.log(frames)
+		nextSecond += 1000
+		frames = 0
+	}
 }
 
 // For debug
@@ -264,6 +275,7 @@ function initialize() {
 			],
 			dead: "#262626", 	// TODO: check color
 			background: "#1D1D1D",
+			shadow: "#000000", //TODO: check color
 			bullet: "#C82257",
 			selected: "#208BB5",
 			text: "#208BB5",

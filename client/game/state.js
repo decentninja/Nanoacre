@@ -16,7 +16,8 @@ function State(map) {
 					owning_player: possibleteam,
 					position: position,
 					target: position,
-					shooting_cooldown: 0
+					shooting_cooldown: 0,
+					shots_fired: 0,
 				})
 				this.nunits++;
 			}

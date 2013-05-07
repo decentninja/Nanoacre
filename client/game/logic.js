@@ -1,7 +1,9 @@
 var TILE_SIZE = 1024;
 var PLAYER_RADIUS = 256;
 
-var SHOOTING_COOLDOWN = 1 * 60;
+var BULLET_RADIUS = 100;
+var SHOOTING_COOLDOWN = 3 * 60;
+var MAX_SHOTS = 3;
 
 ;(function() {
 "use strict";
@@ -139,7 +141,11 @@ Logic.prototype.step = function(state, events) {
 					if (u.id === ev.who && u.shooting_cooldown == 0) {
 						var owning_player = u.owning_player;
 						var pos = deepCopy(u.position);
-						u.shooting_cooldown = SHOOTING_COOLDOWN;
+						++u.shots_fired;
+						if (u.shots_fired == MAX_SHOTS) {
+							u.shooting_cooldown = SHOOTING_COOLDOWN;
+							u.shots_fired = 0;
+						}
 						var x = ev.towards.x - pos.x;
 						var y = ev.towards.y - pos.y;
 						var l = Math.sqrt(x*x + y*y)
@@ -166,8 +172,8 @@ Logic.prototype.step = function(state, events) {
 		b.position.x += b.direction.x * BULLET_SPEED;
 		b.position.y += b.direction.y * BULLET_SPEED;
 		state.units = state.units.filter(function(u) {
-			var distance = Math.sqrt(Math.pow(b.position.x - u.position.x, 2) + Math.pow(b.position.y - u.position.y, 2))
-			if((b.owning_player != u.owning_player) && distance <= PLAYER_RADIUS) {
+			var distanceSq = Math.pow(b.position.x - u.position.x, 2) + Math.pow(b.position.y - u.position.y, 2)
+			if((b.owning_player != u.owning_player) && distanceSq <= Math.pow(PLAYER_RADIUS + BULLET_RADIUS, 2)) {
 				die = true;
 				return false;
 			} else {
