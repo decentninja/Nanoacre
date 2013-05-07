@@ -271,9 +271,9 @@ function initialize() {
 				"#872237",
 				"#A1A1AA"
 			],
-			dead: "#262626", 	// TODO: check color
+			dead: "#262626",
 			background: "#1D1D1D",
-			shadow: "#000000", //TODO: check color
+			shadow: "#000000",
 			bullet: "#C82257",
 			selected: "#208BB5",
 			text: "#208BB5",
