@@ -202,6 +202,7 @@ Runner.prototype.countdown = function(callback) {
 }
 
 Runner.prototype.prepareloop = function(clockAdjustment) {
+	this.deadAlready = false
 	var that = this
 	var canvas = this.canvas
 	this.canvas.onmousedown = function(ev) {
