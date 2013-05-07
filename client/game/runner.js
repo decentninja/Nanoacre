@@ -1,5 +1,3 @@
-var COUNT_DOWN = 3
-
 function Runner(container, config) {
 	var canvas = this.canvas = container.querySelector("canvas")
 	this.container = container
@@ -147,7 +145,7 @@ Runner.prototype.preparemap = function(loadData) {
 			that.prepareloop(clockAdjustment)
 		} else {
 			that.game.step(0, [])
-			that.countdown(COUNT_DOWN, function() {
+			that.countdown(function() {
 				that.prepareloop(clockAdjustment)
 			})
 		}
@@ -191,15 +189,16 @@ Runner.prototype.preparemap = function(loadData) {
 	this.network.ready(startFunc, endFunc, rematchFunc)
 }
 
-Runner.prototype.countdown = function(from, callback) {
+Runner.prototype.countdown = function(callback) {
 	// Not secure...
-	var that = this
-	for(var i = from; i != 0; i--) (function(i) {
-		setTimeout(function() {
-			that.display(i, i <= 2)
-		}, 1000 * (from - i))
-	})(i)
-	setTimeout(callback, from * 1000)
+	this.display("Ready?", false)
+	setTimeout(function() {
+		this.display("Set...")
+	}.bind(this), 1000)
+	setTimeout(function() {
+		this.display("Go!", true)
+		callback()
+	}.bind(this), 2000)
 }
 
 Runner.prototype.prepareloop = function(clockAdjustment) {
