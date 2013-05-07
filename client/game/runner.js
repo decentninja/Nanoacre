@@ -228,7 +228,10 @@ Runner.prototype.prepareloop = function(clockAdjustment) {
 
 	// XXX: This is apparently a bit of a hack.
 	this.lasttime = performance.now() - clockAdjustment
-	this.loop();
+	if(!this.looprunning) {
+		this.loop()
+	}
+	this.looprunning = true
 }
 
 var nextSecond, frames = 0
