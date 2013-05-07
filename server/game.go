@@ -32,13 +32,13 @@ func (g *game) gatherPlayers() {
 	for p := range g.parentCustom.newPlayerChannel {
 		p.ch = g.ch
 		g.players = append(g.players, p)
-		log.Printf("Game %s has %d/%d players.\n", g.str(), len(g.players), g.parentCustom.numPlayers)
+		log.Printf("Game %s: %d/%d players.\n", g.str(), len(g.players), g.parentCustom.numPlayers)
 		if len(g.players) == g.parentCustom.numPlayers {
 			for len(g.ch) > 0 {
 				m := <-g.ch
 				if m.data == "disconnect" {
 					g.removePlayer(m.p)
-					log.Printf("Game %s has removed one of its players as it had disconnected.\n", g.str())
+					log.Printf("Game %s: removed a player as it had disconnected.\n", g.str())
 				}
 			}
 			if len(g.players) == g.parentCustom.numPlayers {
@@ -70,7 +70,7 @@ func (g *game) load() {
 			Field:   field,
 		})
 	}
-	log.Printf("Game %s has sent loadData.\n", g.str())
+	log.Printf("Game %s: sent loadData.\n", g.str())
 }
 
 func (g *game) run() {
@@ -100,14 +100,16 @@ func (g *game) handleMessage(mess *message) {
 
 	case "dead":
 		mess.p.state.dead = true
+		log.Printf("Game %s: a player has died.", g.str())
 		g.endIfAllDead()
 
 	case "rematch":
 		mess.p.state.wantRegame = true
+		log.Printf("Game %s: a player wants a regame.", g.str())
 		g.rematchIfAllAgree()
 
 	case "disconnect":
-		log.Printf("Game %s got a disconnect, shutting down.", g.str())
+		log.Printf("Game %s: got a disconnect", g.str())
 		g.sendToAllOthers(mess)
 		g.shouldQuit = true
 
@@ -134,7 +136,7 @@ func (g *game) startIfAllChecked() {
 	}
 
 	g.sendToAll(START)
-	log.Printf("Game %s has sent a start signal.\n", g.str())
+	log.Printf("Game %s: sent start signal.\n", g.str())
 }
 
 func (g *game) endIfAllDead() {
@@ -147,6 +149,8 @@ func (g *game) endIfAllDead() {
 			}
 		}
 	}
+
+	log.Printf("Game %s: gameover, sending win and loss.\n", g.str())
 
 	for _, p := range g.players {
 		if p.state.dead {
@@ -165,7 +169,7 @@ func (g *game) rematchIfAllAgree() {
 	}
 
 	g.sendToAll(REMATCH_ACCEPT)
-	log.Printf("Game %s is starting a rematch.\n", g.str())
+	log.Printf("Game %s: starting rematch.\n", g.str())
 	for _, p := range g.players {
 		p.state = new(gameState)
 	}
