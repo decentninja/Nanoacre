@@ -89,7 +89,7 @@ Runner.prototype.run = function() {
 		if(lobby != "default") {
 			this.display("Share this url to play with friends", false)
 		}
-		socket = new WebSocket("ws://" + wsServer + "/ws?custom=" + lobby)
+		socket = this.socket = new WebSocket("ws://" + wsServer + "/ws?custom=" + lobby)
 		var that = this
 		socket.onmessage = function(e) {
 			var loadData = JSON.parse(e.data)
@@ -133,7 +133,7 @@ Runner.prototype.preparemap = function(loadData) {
 	this.ui = new Ui(canvas_context, this.config, loadData)
 	this.game = new Game(loadData.Field, this.config, this.ui)
 	if (socket)
-		this.network = new Network(socket, this.eventqueue, 10)
+		this.network = new Network(this.socket, this.eventqueue, 10)
 	else
 		this.network = new MockNetwork();
 
