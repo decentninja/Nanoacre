@@ -86,6 +86,11 @@ func (s *server) newCustom(name string, numPlayers int, options []string) *custo
 		numPlayers:       numPlayers,
 		newPlayerChannel: make(chan *player),
 	}
+	if c.fields == nil {
+		log.Printf("Custom %s: tried to create with %d players, but no maps so defaulting to 2.", c.name, c.numPlayers)
+		c.fields = s.allFields[2]
+		c.numPlayers = 2
+	}
 	c.spawnNewGame()
 	return c
 }
