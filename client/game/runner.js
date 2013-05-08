@@ -72,8 +72,8 @@ function Runner(container, config) {
 		var el = container.querySelector(".fullscreen-container")
 		if (el.requestFullscreen) {
 			el.requestFullscreen()
-		} else if (el.webkitRequestFullScreen) {
-			el.webkitRequestFullScreen()
+		} else if (el.webkitRequestFullscreen) {
+			el.webkitRequestFullscreen()
 		} else if (el.mozRequestFullScreen) {
 			el.mozRequestFullScreen()
 		}

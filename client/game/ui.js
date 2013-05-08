@@ -65,7 +65,7 @@ Ui.prototype.render = function(deltatime, state) {
 				if (state.units[j].id == this.deadUnits[i].id) {
 					this.deadUnits.splice(i, 1)
 					i--
-					console.log("unit " + state.units[i].id + " used to be dead.")
+					console.log("unit " + state.units[j].id + " used to be dead.")
 					break
 				}
 			}

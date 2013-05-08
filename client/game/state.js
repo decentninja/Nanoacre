@@ -1,5 +1,5 @@
 function State(map) {
-	this.nbullet = 0
+	this.nbullets = 0
 	this.bullets = []
 	this.nunits = 0
 	this.units = []
