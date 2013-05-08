@@ -4,7 +4,7 @@ var PLAYER_RADIUS = 256;
 var BULLET_RADIUS = 90;
 var SHOOTING_COOLDOWN = 3 * 60;
 var MAX_SHOTS = 3;
-var RELOAD_COOLDOWN = SHOOTING_COOLDOWN * 2
+var RELOAD_COOLDOWN = SHOOTING_COOLDOWN;
 
 ;(function() {
 "use strict";
@@ -139,7 +139,9 @@ Logic.prototype.step = function(state, events) {
 
 			case "fire":
 				state.units.forEach(function(u) {
-					if (u.id === ev.who && u.shooting_cooldown <= (MAX_SHOTS -1) * SHOOTING_COOLDOWN / MAX_SHOTS) {
+					if (u.id === ev.who && 
+						u.shooting_cooldown <= (MAX_SHOTS -1) * SHOOTING_COOLDOWN / MAX_SHOTS &&
+						(u.reload_cooldown || !u.shooting_cooldown)) {
 						var owning_player = u.owning_player;
 						var pos = deepCopy(u.position);
 						u.shooting_cooldown += SHOOTING_COOLDOWN / MAX_SHOTS
