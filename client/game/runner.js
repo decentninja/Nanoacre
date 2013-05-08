@@ -1,3 +1,36 @@
+// For debug
+var runner
+var socket = null
+
+function initialize() {
+	var config = {
+		colors: {
+			teams: [
+				"#7EA885",
+				"#ECC57C",
+				"#E1856C",
+				"#872237",
+				"#A1A1AA"
+			],
+			dead: "#262626",
+			background: "#1D1D1D",
+			shadow: "#000000",
+			bullet: "#C82257",
+			selected: "#208BB5",
+			text: "#208BB5",
+			map: "#262626",
+			cooldown: "#C82257",
+		},
+		buttons: {
+			0: "fire",
+			2: "move"
+		},
+	}
+	var container = document.querySelector(".everything-container");
+	runner = new Runner(container, config)
+	runner.run()
+}
+
 function Runner(container, config) {
 	var canvas = this.canvas = container.querySelector("canvas")
 	this.container = container
@@ -99,29 +132,6 @@ Runner.prototype.socketOnMessageStartup = function(e) {
 	this.preparemap(JSON.parse(e.data))
 }
 
-Runner.prototype.addLineEvents = function(lineevents) {
-	if (lineevents) {
-		lineevents.forEach(function(lineevent) {
-			this.network.send(lineevent)
-			this.eventqueue.push(lineevent)
-		}, this)
-	}
-}
-
-Runner.prototype.display = function(text, fade) {
-	this.flashtext.style.transition = "none"
-	this.flashtext.style.opacity = 1
-	this.flashtext.innerHTML = text
-
-	var that = this
-	if(fade) {
-		setTimeout(function() {
-			that.flashtext.style.transition = ""
-			that.flashtext.style.opacity = 0
-		}, 1000)
-	}
-}
-
 Runner.prototype.preparemap = function(loadData) {
 	this.playerId = loadData.Id
 	var canvas_context = this.canvas.getContext('2d')
@@ -141,58 +151,22 @@ Runner.prototype.preparemap = function(loadData) {
 	this.real_map_width = this.canvas.width
 	var that = this
 	this.network.takeOverSocket()
-	var startFunc = function(clockAdjustment) {
-		that.display("Connected", true)
-		if(debug) {
-			that.prepareloop(clockAdjustment)
-		} else {
-			that.game.step(0, [])
-			that.countdown(function() {
-				that.prepareloop(clockAdjustment)
-			})
-		}
-	}
-	var endFunc = function(condition) {
-		that.canvas.onmousedown = null
-		window.onkeydown = null
-		window.onkeyup = null
-
-		var newgamebutton = '<input class="newgame" type="button" value="New game"> '
-		var rematchbutton = ' <input class="rematch" type="button" value="Rematch">'
-		var str
-		switch (condition) {
-			case "win":
-				str = "You won!"
-				break
-
-			case "loss":
-				str = "You lost"
-				break
-
-			case "draw":
-				str = "Draw"
-				break
-
-			case "disconnect":
-				str = 'Someone disconnected, this game has ended.'
-				break
-		}
-		that.display(newgamebutton + str + rematchbutton, false)
-		var rematch = that.container.querySelector(".rematch")
-		rematch.onclick = function() {
-			that.network.send("rematch")
-		}
-		that.container.querySelector(".newgame").onclick = function() {
-			document.location.reload(false)
-		}
-		if (condition == "disconnect") {
-			rematch.setAttribute("disabled", true)
-		}
-	}
 	var rematchFunc = function() {
 		that.socket.onmessage = that.socketOnMessageStartup.bind(that)
 	}
-	this.network.ready(startFunc, endFunc, rematchFunc)
+	this.network.ready(this.startFunc.bind(this), this.endFunc.bind(this), rematchFunc)
+}
+
+Runner.prototype.startFunc = function(clockAdjustment) {
+	this.display("Connected", true)
+	if(debug) {
+		this.prepareloop(clockAdjustment)
+	} else {
+		this.game.step(0, [])
+		this.countdown(function() {
+			this.prepareloop(clockAdjustment)
+		}.bind(this))
+	}
 }
 
 Runner.prototype.countdown = function(callback) {
@@ -258,36 +232,65 @@ Runner.prototype.loop = function() {
 	requestAnimationFrame(this.loop.bind(this))
 }
 
-// For debug
-var runner
-var socket = null
+Runner.prototype.endFunc = function(condition) {
+	this.canvas.onmousedown = null
+	window.onkeydown = null
+	window.onkeyup = null
 
-function initialize() {
-	var config = {
-		colors: {
-			teams: [
-				"#7EA885",
-				"#ECC57C",
-				"#E1856C",
-				"#872237",
-				"#A1A1AA"
-			],
-			dead: "#262626",
-			background: "#1D1D1D",
-			shadow: "#000000",
-			bullet: "#C82257",
-			selected: "#208BB5",
-			text: "#208BB5",
-			map: "#262626",
-			cooldown: "#C82257",
-		},
-		buttons: {
-			0: "fire",
-			2: "move"
-		},
+	var newgamebutton = '<input class="newgame" type="button" value="New game"> '
+	var rematchbutton = ' <input class="rematch" type="button" value="Rematch">'
+	var str
+	switch (condition) {
+		case "win":
+			str = "You won!"
+			break
+
+		case "loss":
+			str = "You lost"
+			break
+
+		case "draw":
+			str = "Draw"
+			break
+
+		case "disconnect":
+			str = 'Someone disconnected, this game has ended.'
+			break
 	}
-	var container = document.querySelector(".everything-container");
-	runner = new Runner(container, config)
-	runner.run()
+	this.display(newgamebutton + str + rematchbutton, false)
+	var rematch = this.container.querySelector(".rematch")
+	rematch.onclick = function() {
+		this.network.send("rematch")
+	}.bind(this)
+	this.container.querySelector(".newgame").onclick = function() {
+		document.location.reload(false)
+	}
+	if (condition == "disconnect") {
+		rematch.setAttribute("disabled", true)
+	}
 }
+
+Runner.prototype.display = function(text, fade) {
+	this.flashtext.style.transition = "none"
+	this.flashtext.style.opacity = 1
+	this.flashtext.innerHTML = text
+
+	var that = this
+	if(fade) {
+		setTimeout(function() {
+			that.flashtext.style.transition = ""
+			that.flashtext.style.opacity = 0
+		}, 1000)
+	}
+}
+
+Runner.prototype.addLineEvents = function(lineevents) {
+	if (lineevents) {
+		lineevents.forEach(function(lineevent) {
+			this.network.send(lineevent)
+			this.eventqueue.push(lineevent)
+		}, this)
+	}
+}
+
 initialize()
