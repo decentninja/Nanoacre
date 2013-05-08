@@ -7,11 +7,12 @@ import (
 	"math/rand"
 	"net/http"
 	"path/filepath"
+	"strconv"
 )
 
 type server struct {
 	customs   map[string]*custom
-	allFields []*playfield
+	allFields map[int][]*playfield
 }
 
 type custom struct {
@@ -24,11 +25,12 @@ type custom struct {
 }
 
 func SetupSocketServer(field string) {
-	var fields []*playfield
+	var fields map[int][]*playfield
 	if field == "" {
 		fields = readFieldsFromFolder("maps")
 	} else {
-		fields = []*playfield{readFieldFromFile(filepath.Join("maps", field))}
+		field := readFieldFromFile(filepath.Join("maps", field))
+		fields = map[int][]*playfield{len(field.unitsPerPlayer): []*playfield{field}}
 	}
 	l := &server{
 		customs:   make(map[string]*custom),
@@ -39,17 +41,32 @@ func SetupSocketServer(field string) {
 	http.Handle("/ws", handler)
 }
 
-func (l *server) newConnection() func(*websocket.Conn) {
+func (s *server) newConnection() func(*websocket.Conn) {
 	return func(ws *websocket.Conn) {
-		customKey := ws.Request().URL.Query().Get("custom")
-		c, exists := l.customs[customKey]
+		query := ws.Request().URL.Query()
+		customKey := query.Get("custom")
+		c, exists := s.customs[customKey]
 		if !exists { //TODO: data race might lose one player if connections are simultaneous
-			c = l.newDefaultCustom(customKey)
-			l.customs[customKey] = c
+			numPlayers := 2
+			if num := query.Get("players"); num != "" {
+				var err error
+				numPlayers, err = strconv.Atoi(num)
+				if err != nil {
+					log.Printf("Tried to create a new custom, but got a \"players\" that was not a number (err: %s)\n", err)
+					return
+				}
+			}
+			var options []string
+			options, exists = query["option"]
+			if !exists {
+				options = make([]string, 0, 0)
+			}
+			c = s.newCustom(customKey, numPlayers, options)
+			s.customs[customKey] = c
 		}
 		log.Printf("Got new connection in custom: \"%s\"\n", customKey)
 		p := &player{
-			conn: ws,
+			conn:  ws,
 			state: new(gameState),
 		}
 		c.newPlayerChannel <- p
@@ -57,12 +74,16 @@ func (l *server) newConnection() func(*websocket.Conn) {
 	}
 }
 
-func (l *server) newDefaultCustom(name string) *custom {
+func (s *server) newDefaultCustom(name string) *custom {
+	return s.newCustom(name, 2, make([]string, 0, 0))
+}
+
+func (s *server) newCustom(name string, numPlayers int, options []string) *custom {
 	c := &custom{
 		name:             name,
-		fields:           l.allFields,
-		options:          make([]string, 0, 0),
-		numPlayers:       2,
+		fields:           s.allFields[numPlayers],
+		options:          options,
+		numPlayers:       numPlayers,
 		newPlayerChannel: make(chan *player),
 	}
 	c.spawnNewGame()

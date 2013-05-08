@@ -255,6 +255,7 @@ Ui.prototype.pathShadowsForUnit = function(unit) {
 			}
 		}
 	}
+	this.ctx.moveTo(0, 0);
 
 	this.ctx.clip();
 }

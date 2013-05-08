@@ -15,39 +15,29 @@ type playfield struct {
 }
 
 const (
-	firstPlayerTile = 100
+	FIRST_PLAYER_TILE = 100
 )
 
-func (p *playfield) calcUnitsPerPlayer() {
-	tempslice := make([]int, 24)
-	nPlayers := 0
-	for _, row := range p.Tiles {
-		for _, tile := range row {
-			playerId := tile - firstPlayerTile
-			if playerId > 0 {
-				tempslice[playerId]++
-			}
-			if playerId > nPlayers {
-				nPlayers = playerId
-			}
-		}
-	}
-
-	p.unitsPerPlayer = tempslice[:nPlayers]
-}
-
-func readFieldsFromFolder(folder string) []*playfield {
+func readFieldsFromFolder(folder string) map[int][]*playfield {
 	fo, err := os.Open(folder)
 	d(err)
 	files, err := fo.Readdirnames(-1)
 	d(err)
 
-	ret := make([]*playfield, 0)
+	ret := make(map[int][]*playfield)
 	for _, file := range files {
 		if file[0] != '.' {
-			ret = append(ret, readFieldFromFile(filepath.Join(folder, file)))
+			field := readFieldFromFile(filepath.Join(folder, file))
+			fields, exists := ret[len(field.unitsPerPlayer)]
+			if !exists {
+				ret[len(field.unitsPerPlayer)] = make([]*playfield, 0)
+				fields = ret[len(field.unitsPerPlayer)]
+			}
+			ret[len(field.unitsPerPlayer)] = append(fields, field)
 		}
 	}
+
+	log.Printf("%v", ret)
 
 	return ret
 }
@@ -62,6 +52,8 @@ func readFieldFromFile(file string) *playfield {
 
 	ret := make([][]int, 0, 256)
 
+	tempslice := make([]int, 24)
+	nPlayers := 0
 	var line string
 	for err == nil {
 		line, err = reader.ReadString('\n')
@@ -71,6 +63,13 @@ func readFieldFromFile(file string) *playfield {
 		for i, m := range match {
 			num, _ := strconv.Atoi(m[1])
 			row[i] = num
+			playerId := num - FIRST_PLAYER_TILE
+			if playerId > 0 {
+				tempslice[playerId]++
+			}
+			if playerId >= nPlayers {
+				nPlayers = playerId + 1
+			}
 		}
 		ret = append(ret, row)
 	}
@@ -79,7 +78,7 @@ func readFieldFromFile(file string) *playfield {
 		log.Fatalf("Couldn't load \"%s\", possibly an error: %s\n", file, err)
 	}
 
-	return &playfield{Tiles: ret}
+	return &playfield{Tiles: ret, unitsPerPlayer: tempslice[0:nPlayers]}
 }
 
 func d(err interface{}) {

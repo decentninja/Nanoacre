@@ -84,10 +84,11 @@ Runner.prototype.run = function() {
 	else {
 		var wsServer = GetParams["ws"] || location.host
 		var lobby = GetParams["lobby"] || "default"
+		var players = GetParams["players"] || 2
 		if(lobby != "default") {
 			this.display("Share this url to play with friends", false)
 		}
-		socket = this.socket = new WebSocket("ws://" + wsServer + "/ws?custom=" + lobby)
+		socket = this.socket = new WebSocket("ws://" + wsServer + "/ws?custom=" + lobby + "&players=" + players)
 		this.display("Waiting for another player...", false)
 		var that = this
 		this.socket.onmessage = this.socketOnMessageStartup.bind(this)
