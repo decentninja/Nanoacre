@@ -13,19 +13,22 @@ body {
 }
 
 .content > h1 {
-	padding-top: 3%;
-	height: 6%;
+	padding-top: 2%;
 	text-align: center;
 	font-weight: 700;
 	margin: 0px;
 }
 
 .settings {
-	height: 6%;
 	text-align: center;
 	position: absolute;
 	width: 100%;
 	bottom: 0;
+}
+
+.settings > img {
+	display: block;
+	margin: auto;
 }
 
 input[type=button] {
