@@ -22,7 +22,6 @@ function Ui(canvas_context, config, loadData) {
 	this.deadUnits = []
 	this.selection = []
 	this.ownedUnits = []
-	this.drawMode = 0
 
 	this.particlesystem = new Particlesystem(canvas_context)
 }
@@ -149,21 +148,9 @@ Ui.prototype.renderUnit = function(unit, alive) {
 		this.ctx.beginPath()
 		this.ctx.arc(x, y, PLAYER_RADIUS * UI_RENDER_FACTOR, 0, Math.PI*2, false)
 	} else {
-		switch(this.drawMode) {
-			case 0:
-				this.ctx.beginPath()
-				this.ctx.arc(x, y, PLAYER_RADIUS * UI_RENDER_FACTOR, 0, Math.PI*2, false)
-				break
-			case 1:
-				this.drawDots(x, y, idWhenSelected + 1, PLAYER_RADIUS * UI_RENDER_FACTOR * 1.4, 2)
-				this.ctx.beginPath()
-				this.ctx.arc(x, y, PLAYER_RADIUS * UI_RENDER_FACTOR, 0, Math.PI*2, false)
-				break
-			case 2:
-				this.ctx.beginPath()
-				this.drawNGonPath(x, y, idWhenSelected + 3, PLAYER_RADIUS * UI_RENDER_FACTOR)
-				break
-		}
+		this.drawDots(x, y, idWhenSelected + 1, PLAYER_RADIUS * UI_RENDER_FACTOR * 1.4, 2)
+		this.ctx.beginPath()
+		this.ctx.arc(x, y, PLAYER_RADIUS * UI_RENDER_FACTOR, 0, Math.PI*2, false)
 	}
 	this.ctx.fill()
 
@@ -357,8 +344,6 @@ Ui.prototype.handleKeyDown = function(keycode, shiftDown, nextFrame) {
 				this.selection = [this.ownedUnits[index]]
 			}
 		}
-	} else if (keycode == 48) {
-		this.drawMode = (this.drawMode + 1) % 3
 	}
 
 	return null
