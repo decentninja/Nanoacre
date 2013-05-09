@@ -175,7 +175,7 @@ Logic.prototype.step = function(state, events) {
 		b.position.x += b.direction.x * BULLET_SPEED;
 		b.position.y += b.direction.y * BULLET_SPEED;
 		state.units = state.units.filter(function(u) {
-			var distanceSq = Math.pow(b.position.x - u.position.x, 2) + Math.pow(b.position.y - u.position.y, 2)
+			var distanceSq = dist2(u.position, b.position);
 			if((b.owning_player != u.owning_player) && distanceSq <= Math.pow(PLAYER_RADIUS + BULLET_RADIUS, 2)) {
 				die = true;
 				return false;

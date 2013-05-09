@@ -105,20 +105,11 @@ Ui.prototype.render = function(deltatime, state) {
 	this.particlesystem.update(deltatime)
 	this.particlesystem.render()
 
-	// Shadow
-	var shadowsFor = [];
-	for (var i = 0; i < state.units.length; i++) {
-		if (state.units[i].owning_player === this.playerId)
-			shadowsFor.push(state.units[i]);
-	}
-	if (shadowsFor.length > 0) {
-		this.ctx.save();
-		this.clipShadows(shadowsFor);
-		this.ctx.fillStyle = this.config.colors.shadow;
-		this.ctx.beginPath();
-		this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-		this.ctx.restore();
-	}
+	// Shadows
+	var shadowsFor = state.units.filter(function(unit) {
+		return (unit.owning_player === this.playerId);
+	}.bind(this));
+	this.renderShadows(shadowsFor);
 
 	// Map
 	this.ctx.fillStyle = this.config.colors.map
@@ -169,10 +160,17 @@ Ui.prototype.renderUnit = function(unit, alive) {
 	}
 }
 
-Ui.prototype.clipShadows = function(units) {
+Ui.prototype.renderShadows = function(units) {
+	if (!units.length)
+		return;
+
+	this.ctx.save();
 	for (var i = 0; i < units.length; ++i) {
 		this.pathShadowsForUnit(units[i]);
 	}
+	this.ctx.fillStyle = this.config.colors.shadow;
+	this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+	this.ctx.restore();
 }
 
 Ui.prototype.blocksLOS = function(y, x) {
@@ -248,29 +246,73 @@ Ui.prototype.pathShadowsForUnit = function(unit) {
 }
 
 Ui.prototype.pathShadowForUnit = function(base, a, b) {
-	var factor = 300;
+	if (dist2(base, a) < 1e-5 || dist2(base, b) < 1e-5)
+		return;
+
+	var ctx = this.ctx;
+	var width = ctx.canvas.width;
+	var height = ctx.canvas.height;
+
+	function side(point, orig, base, which) {
+		if (point.y === height) return 0;
+		if (point.x === width) return 1;
+		if (point.y === 0) return 2;
+		if (point.x === 0) return 3;
+		return 0; // this can't happen, but cope with it if it does
+	}
+	function project(from, against) {
+		var scale = Infinity;
+		if (against.x > from.x + 1e-5)
+			scale = Math.min(scale, (width - from.x) / (against.x - from.x));
+		if (against.x < from.x - 1e-5)
+			scale = Math.min(scale, (from.x - 0) / (from.x - against.x));
+		if (against.y > from.y + 1e-5)
+			scale = Math.min(scale, (height - from.y) / (against.y - from.y));
+		if (against.y < from.y - 1e-5)
+			scale = Math.min(scale, (from.y - 0) / (from.y - against.y));
+		// N.B.: We use Math.floor(x + 0.5) instead of Math.round(x) here, to
+		// work around what seems like a Firefox JIT bug.
+		return {
+			x: Math.floor(from.x + (against.x - from.x) * scale + 0.5),
+			y: Math.floor(from.y + (against.y - from.y) * scale + 0.5)
+		};
+	}
+
+	// Orientation bleh
 	var a2 = {
-		x: (a.x - base.x) * factor + base.x,
-		y: (a.y - base.y) * factor + base.y,
+		x: (a.x - base.x) * 2 + base.x,
+		y: (a.y - base.y) * 2 + base.y,
 	};
 	var b2 = {
-		x: (b.x - base.x) * factor + base.x,
-		y: (b.y - base.y) * factor + base.y,
+		x: (b.x - base.x) * 2 + base.x,
+		y: (b.y - base.y) * 2 + base.y,
 	};
 	if ( (b2.x-a2.x)*(b2.y+a2.y)
 		+(b.x -b2.x)*(b.y +b2.y)
 		+(a.x - b.x)*(a.y + b.y)
-		+(a2.x- a.x)*(a2.y+ a.y) < 0) {
-		var temp = b;
-		b = a; a = temp;
-		temp = b2;
-		b2 = a2; a2 = temp;
+		+(a2.x- a.x)*(a2.y+ a.y) < 0)
+	{
+		var temp = b; b = a; a = temp;
 	}
-	this.ctx.moveTo(a2.x, a2.y);
-	this.ctx.lineTo(b2.x, b2.y);
-	this.ctx.lineTo(b.x, b.y);
-	this.ctx.lineTo(a.x, a.y);
-	this.ctx.closePath();
+
+	a2 = project(base, a);
+	b2 = project(base, b);
+	var as = side(a2, a, base, "a"), bs = side(b2, b, base, "b");
+
+	ctx.moveTo(a2.x, a2.y);
+	while (as != bs) {
+		var mid;
+		if (as === 0) mid = {x: width, y: height};
+		if (as === 1) mid = {x: width, y: 0};
+		if (as === 2) mid = {x: 0, y: 0};
+		if (as === 3) mid = {x: 0, y: height};
+		ctx.lineTo(mid.x, mid.y);
+		as = (as + 1) % 4;
+	}
+
+	ctx.lineTo(b2.x, b2.y);
+	ctx.lineTo(b.x, b.y);
+	ctx.lineTo(a.x, a.y);
 }
 
 Ui.prototype.precomputeDots = function(maxN) {
