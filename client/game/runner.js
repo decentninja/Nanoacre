@@ -82,8 +82,10 @@ function Runner(container, config) {
 
 	var customgameButton = container.querySelector(".create-lobby")
 	customgameButton.addEventListener("click", function() {
-		var players = window.prompt("How many players?")	// XXX BAAAAD
-		players = players || 2
+		var players = window.prompt("How many players?", 2) // XXX BAAAAD
+		if (isNaN(players) || players < 2)
+			return
+		players = Math.floor(players)
 		var things = "abcdefghijklmnopqrstuvwxyz1234567890"
 		var go = ""
 		for(var i = 0; i < 10; i++) {
