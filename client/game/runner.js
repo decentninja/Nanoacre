@@ -154,10 +154,10 @@ Runner.prototype.preparemap = function(loadData) {
 
 	this.real_map_width = this.canvas.width
 	var that = this
-	this.network.takeOverSocket()
 	var rematchFunc = function() {
 		that.socket.onmessage = that.socketOnMessageStartup.bind(that)
 	}
+	this.network.takeOverSocket()
 	this.network.ready(this.startFunc.bind(this), this.endFunc.bind(this), rematchFunc)
 }
 
@@ -233,6 +233,8 @@ Runner.prototype.loop = function() {
 			}
 		}.bind(this), 1000)
 	}
+	if (GetParams["noloop"])
+		return;
 	requestAnimationFrame(this.loop.bind(this))
 }
 
@@ -267,7 +269,7 @@ Runner.prototype.endFunc = function(condition) {
 		this.network.send("rematch")
 	}.bind(this)
 	this.container.querySelector(".newgame").onclick = function() {
-		document.location.reload(false)
+		location.reload()
 	}
 	if (condition == "disconnect") {
 		rematch.setAttribute("disabled", true)
