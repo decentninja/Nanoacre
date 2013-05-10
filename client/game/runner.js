@@ -26,7 +26,7 @@ function initialize() {
 			2: "move"
 		},
 	}
-	var container = document.querySelector(".everything-container");
+	var container = document.querySelector(".content");
 	runner = new Runner(container, config)
 	runner.run()
 }
@@ -36,38 +36,47 @@ function Runner(container, config) {
 	this.container = container
 	this.config = config
 
-	this.flashtext = this.container.querySelector(".flashtext")
+	this.flashtext = container.querySelector(".flashtext")
 	
-	var actualContainer = container.querySelector(".fullscreen-container")
-	function mayresize() {
-		var widthScale  = actualContainer.offsetWidth  / canvas.width
+	this.actualContainer = container.querySelector(".fullscreen-container")
+
+	this.eventqueue = []
+}
+
+Runner.prototype.run = function() {
+	var container = this.container
+	var canvas = this.canvas;
+	var actualContainer = this.actualContainer;
+	this.resizeHandler = function() {
+		var widthScale = actualContainer.offsetWidth  / canvas.width
 		var heightScale = actualContainer.offsetHeight / canvas.height
 		if (widthScale < 1 && heightScale >= 1) {
-			canvas.style.setProperty("width", "100%")
-			canvas.style.setProperty("height", "")
-
-		} else if (widthScale >= 1 && heightScale < 1) {
-			canvas.style.setProperty("width", "")
-			canvas.style.setProperty("height", "100%")
-
-		} else if (widthScale < 1 && heightScale < 1) {
+			canvas.style.width = "100%"
+			canvas.style.height = ""
+		}
+		else if (widthScale >= 1 && heightScale < 1) {
+			canvas.style.width = ""
+			canvas.style.height = "100%"
+		}
+		else if (widthScale < 1 && heightScale < 1) {
 			if (widthScale < heightScale) {
-				canvas.style.setProperty("width", "100%")
-				canvas.style.setProperty("height", "")
-			} else {
-				canvas.style.setProperty("width", "")
-				canvas.style.setProperty("height", "100%")
+				canvas.style.width = "100%"
+				canvas.style.height = ""
 			}
-
-		} else {
-			canvas.style.setProperty("width", "")
-			canvas.style.setProperty("height", "")
+			else {
+				canvas.style.width = ""
+				canvas.style.height = "100%"
+			}
+		}
+		else {
+			canvas.style.width = ""
+			canvas.style.height = ""
 		}
 	}
-	mayresize()
-	window.onresize = mayresize
+	this.resizeHandler();
+	window.addEventListener("resize", this.resizeHandler);
 
-	var fullscreenButton = container.querySelector(".fullscreen-button")
+	var fullscreenButton = this.container.querySelector(".fullscreen-button")
 	fullscreenButton.addEventListener("click", function() {
 		var el = container.querySelector(".fullscreen-container")
 		if (el.requestFullscreen) {
@@ -77,28 +86,23 @@ function Runner(container, config) {
 		} else if (el.mozRequestFullScreen) {
 			el.mozRequestFullScreen()
 		}
-		mayresize()
-	})
+	}.bind(this))
 
-	var customgameButton = container.querySelector(".create-lobby")
+	var customgameButton = this.container.querySelector(".create-lobby")
 	customgameButton.addEventListener("click", function() {
 		var players = window.prompt("How many players?", 2) // XXX BAAAAD
 		if (isNaN(players) || players < 2)
 			return
 		players = Math.floor(players)
-		var things = "abcdefghijklmnopqrstuvwxyz1234567890"
-		var go = ""
+		var alphabet = "abcdefghijklmnopqrstuvwxyz1234567890"
+		var id = ""
 		for(var i = 0; i < 10; i++) {
-			go += things.charAt(Math.floor(Math.random() * things.length))
+			id += alphabet.charAt(Math.floor(Math.random() * alphabet.length))
 		}
-		window.location = "?lobby=" + go + "&players=" + players
+		location.href = "?lobby=" + id + "&players=" + players
 	})
 
-	this.eventqueue = []
-}
-
-Runner.prototype.run = function() {
-	if(debug) {
+	if (debug) {
 		var loadData = {
 			Id: 0,
 			Field: {
@@ -123,7 +127,7 @@ Runner.prototype.run = function() {
 		var lobby = GetParams["lobby"] || "default"
 		var players = GetParams["players"] || 2
 		if(lobby != "default") {
-			this.display("Share this url to play with friends", false)
+			this.display("Share this url to play with friends", false) // lolwat this will go away right after...
 		}
 		socket = this.socket = new WebSocket("ws://" + wsServer + "/ws?custom=" + lobby + "&players=" + players)
 		this.display("Waiting for another player...", false)
@@ -131,6 +135,10 @@ Runner.prototype.run = function() {
 		this.socket.onmessage = this.socketOnMessageStartup.bind(this)
 	}
 }
+
+Runner.prototype.destroy = function() {
+	window.removeEventListener("resize", this.resizeHandler, false);
+};
 
 Runner.prototype.socketOnMessageStartup = function(e) {
 	this.preparemap(JSON.parse(e.data))
@@ -143,7 +151,7 @@ Runner.prototype.preparemap = function(loadData) {
 	loadData.Field.height = loadData.Field.Tiles.length
 	this.canvas.width = loadData.Field.width * TILE_RENDER_SIZE
 	this.canvas.height = loadData.Field.height * TILE_RENDER_SIZE
-	window.onresize()
+	this.resizeHandler();
 
 	this.ui = new Ui(canvas_context, this.config, loadData)
 	this.game = new Game(loadData.Field, this.config, this.ui)
@@ -203,6 +211,10 @@ Runner.prototype.prepareloop = function(clockAdjustment) {
 	}
 
 	window.onkeydown = function(ev) {
+		if (ev.keyCode === 65 && (ev.ctrlKey || ev.accelKey)) {
+			ev.preventDefault();
+			return;
+		}
 		lineevent = that.ui.handleKeyDown(ev.keyCode, that.game.getNextFrame())
 		that.addLineEvent(lineevent)
 	}
@@ -277,15 +289,15 @@ Runner.prototype.endFunc = function(condition) {
 }
 
 Runner.prototype.display = function(text, fade) {
-	this.flashtext.style.transition = "none"
-	this.flashtext.style.opacity = 1
-	this.flashtext.innerHTML = text
+	var el = this.flashtext
+	el.style.transition = "none"
+	el.style.opacity = 1
+	el.innerHTML = text
 
-	var that = this
-	if(fade) {
+	if (fade) {
 		setTimeout(function() {
-			that.flashtext.style.transition = ""
-			that.flashtext.style.opacity = 0
+			el.style.transition = ""
+			el.style.opacity = 0
 		}, 1000)
 	}
 }
