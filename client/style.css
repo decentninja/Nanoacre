@@ -31,6 +31,14 @@ body {
 	margin: auto;
 }
 
+.help {
+	text-align: center;
+	pointer-events: none;
+	width: 100%;
+	position: absolute;
+	bottom: 15px;
+}
+
 input[type=button] {
 	background-color: #208BB5;
 	border: none;
