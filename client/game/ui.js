@@ -338,27 +338,6 @@ Ui.prototype.drawDots = function(x, y, n, radiusFromPlayer, dotRadius) {
 	}
 }
 
-Ui.prototype.precomputeNGons = function(maxN) {
-	this.ngons = new Array(maxN)
-	for (var i = 0; i <= maxN; i++) {
-		this.ngons[i] = new Array(i)
-		for (var j = 0; j < i; j++) {
-			this.ngons[i][j] = [Math.cos(j * 2 * Math.PI / i - Math.PI/2), Math.sin(j * 2 * Math.PI / i - Math.PI/2)]
-		}
-	}
-}
-
-Ui.prototype.drawNGonPath = function(x, y, n, radius) {
-	if (!this.ngons || n >= this.ngons.length)
-		this.precomputeNGons(Math.max(10, n))
-
-	this.ctx.moveTo(x, y - radius)
-	for (var i = 0; i < n; i++) {
-		this.ctx.lineTo(x + radius*this.ngons[n][i][0], y + radius*this.ngons[n][i][1])
-	}
-	this.ctx.closePath()
-}
-
 Ui.prototype.handleMousedown = function(x, y, button, nextFrame) {
 	var type = this.config.buttons[button]
 	return {
