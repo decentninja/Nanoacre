@@ -198,17 +198,17 @@ Runner.prototype.prepareloop = function(clockAdjustment) {
 		var y = ev.pageY - Math.round(bclr.top + window.pageYOffset - docElem.clientLeft)
 		x /= scale
 		y /= scale
-		lineevents = that.ui.handleMousedown(x, y, ev.button, that.game.getNextFrame())
-		that.addLineEvents(lineevents)
+		lineevent = that.ui.handleMousedown(x, y, ev.button, that.game.getNextFrame())
+		that.addLineEvent(lineevent)
 	}
 
 	window.onkeydown = function(ev) {
-		lineevents = that.ui.handleKeyDown(ev.keyCode, ev.shiftKey, that.game.getNextFrame())
-		that.addLineEvents(lineevents)
+		lineevent = that.ui.handleKeyDown(ev.keyCode, that.game.getNextFrame())
+		that.addLineEvent(lineevent)
 	}
 	window.onkeyup = function(ev) {
-		lineevents = that.ui.handleKeyUp(ev.keyCode, ev.shiftKey, that.game.getNextFrame())
-		that.addLineEvents(lineevents)
+		lineevent = that.ui.handleKeyUp(ev.keyCode, that.game.getNextFrame())
+		that.addLineEvent(lineevent)
 	}
 
 	// XXX: This is apparently a bit of a hack.
@@ -290,12 +290,10 @@ Runner.prototype.display = function(text, fade) {
 	}
 }
 
-Runner.prototype.addLineEvents = function(lineevents) {
-	if (lineevents) {
-		lineevents.forEach(function(lineevent) {
-			this.network.send(lineevent)
-			this.eventqueue.push(lineevent)
-		}, this)
+Runner.prototype.addLineEvent = function(lineevent) {
+	if (lineevent) {
+		this.network.send(lineevent)
+		this.eventqueue.push(lineevent)
 	}
 }
 

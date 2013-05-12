@@ -20,7 +20,6 @@ function Ui(canvas_context, config, loadData) {
 	this.playerId = loadData.Id
 
 	this.deadUnits = []
-	this.selection = []
 	this.ownedUnits = []
 
 	this.particlesystem = new Particlesystem(canvas_context)
@@ -32,7 +31,7 @@ Ui.prototype.registerInitialUnits = function(units) {
 			this.ownedUnits.push(unit.id)
 		}
 	}, this)
-	this.selection = [this.ownedUnits[0]]
+	this.selection = this.ownedUnits[0]
 }
 
 Ui.prototype.render = function(deltatime, state) {
@@ -127,7 +126,7 @@ Ui.prototype.render = function(deltatime, state) {
 Ui.prototype.renderUnit = function(unit, alive) {
 	var x = unit.position.x * UI_RENDER_FACTOR;
 	var y = unit.position.y * UI_RENDER_FACTOR;
-	var isSelected = this.selection.indexOf(unit.id) != -1
+	var isSelected = this.selection == unit.id
 	if (alive) {
 		this.ctx.fillStyle = this.config.colors.teams[unit.owning_player]
 	} else {
@@ -362,42 +361,26 @@ Ui.prototype.drawNGonPath = function(x, y, n, radius) {
 
 Ui.prototype.handleMousedown = function(x, y, button, nextFrame) {
 	var type = this.config.buttons[button]
-	return this.selection.map(function(unitId, index, selection) {
-		return {
-			time: nextFrame,
-			type: type,
-			who: unitId,
-			towards: {
-				x: (x / UI_RENDER_FACTOR) | 0, //TODO: offset if several units are selected
-				y: (y / UI_RENDER_FACTOR) | 0
-			}
+	return {
+		time: nextFrame,
+		type: type,
+		who: this.selection,
+		towards: {
+			x: (x / UI_RENDER_FACTOR) | 0,
+			y: (y / UI_RENDER_FACTOR) | 0
 		}
-	})
+	}
 }
 
-Ui.prototype.handleKeyDown = function(keycode, shiftDown, nextFrame) {
+Ui.prototype.handleKeyDown = function(keycode, nextFrame) {
 	if (keycode >= 49 && keycode <= 57) { //1-9
 		var index = keycode - 49
 		if (this.ownedUnits.length > index) {
 			var unitId = this.ownedUnits[index]
-			if (shiftDown) {
-				this.toggleUnitSelection(unitId)
-			} else {
-				this.selection = [this.ownedUnits[index]]
-			}
+			this.selection = this.ownedUnits[index]
 		}
 	}
-
 	return null
 }
 
-Ui.prototype.toggleUnitSelection = function(unitId) { //TODO: This should probably be a bit more intelligent, say only remove units when more than one unit is selected
-	var index = this.selection.indexOf(unitId)
-	if (index == -1) {
-		this.selection.push(unitId)
-	} else {
-		this.selection.splice(index, 1)
-	}
-}
-
-Ui.prototype.handleKeyUp = function(keycode, shiftDown, nextFrame) {}
+Ui.prototype.handleKeyUp = function(keycode, nextFrame) {}
