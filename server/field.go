@@ -2,15 +2,17 @@ package server
 
 import (
 	"bufio"
+	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
-	"log"
 )
 
 type playfield struct {
 	Tiles          [][]int
+	Name           string
 	unitsPerPlayer []int
 }
 
@@ -27,7 +29,7 @@ func readFieldsFromFolder(folder string) map[int][]*playfield {
 	ret := make(map[int][]*playfield)
 	for _, file := range files {
 		if file[0] != '.' {
-			field := readFieldFromFile(filepath.Join(folder, file))
+			field := readFieldFromFile(folder, file)
 			fields, exists := ret[len(field.unitsPerPlayer)]
 			if !exists {
 				ret[len(field.unitsPerPlayer)] = make([]*playfield, 0)
@@ -37,13 +39,19 @@ func readFieldsFromFolder(folder string) map[int][]*playfield {
 		}
 	}
 
-	log.Printf("%v", ret)
+	logMessage := "Loaded maps numPlayers:count --"
+
+	for players, fields := range ret {
+		logMessage += fmt.Sprintf(" %d:%d", players, len(fields))
+	}
+
+	log.Print(logMessage)
 
 	return ret
 }
 
-func readFieldFromFile(file string) *playfield {
-	fi, err := os.Open(file)
+func readFieldFromFile(folder, file string) *playfield {
+	fi, err := os.Open(filepath.Join(folder, file))
 	d(err)
 	defer fi.Close()
 
@@ -74,11 +82,15 @@ func readFieldFromFile(file string) *playfield {
 		ret = append(ret, row)
 	}
 
-	if (len(ret[0]) == 0) {
-		log.Fatalf("Couldn't load \"%s\", possibly an error: %s\n", file, err)
+	if len(ret[0]) == 0 {
+		log.Fatalf("Couldn't load map \"%s\", possibly an error: %s\n", file, err)
 	}
 
-	return &playfield{Tiles: ret, unitsPerPlayer: tempslice[0:nPlayers]}
+	return &playfield{
+		Name:           file,
+		Tiles:          ret,
+		unitsPerPlayer: tempslice[0:nPlayers],
+	}
 }
 
 func d(err interface{}) {

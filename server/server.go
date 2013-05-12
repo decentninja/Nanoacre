@@ -6,7 +6,6 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
-	"path/filepath"
 	"strconv"
 )
 
@@ -29,7 +28,7 @@ func SetupSocketServer(field string) {
 	if field == "" {
 		fields = readFieldsFromFolder("maps")
 	} else {
-		field := readFieldFromFile(filepath.Join("maps", field))
+		field := readFieldFromFile("maps", field)
 		fields = map[int][]*playfield{len(field.unitsPerPlayer): []*playfield{field}}
 	}
 	l := &server{
