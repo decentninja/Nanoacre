@@ -18,7 +18,7 @@ function initialize() {
 			bullet: "#C82257",
 			selected: "#208BB5",
 			text: "#208BB5",
-			map: "#262626",
+			map: "#434242",
 			cooldown: "#C82257",
 		},
 		buttons: {
