@@ -35,3 +35,20 @@ var GetParams = (function(searchstr) {
 })(location.search);
 
 var debug = GetParams["debug"] || 0;
+
+function dist2(a, b) {
+	var dx = a.x - b.x, dy = a.y - b.y;
+	return dx*dx + dy*dy;
+}
+
+function randrange(a, b) {
+	return Math.random() * (b - a) + a;
+}
+
+function randvector(l) {
+	var v = 2 * Math.PI * Math.random()
+	return {
+		x: l * Math.cos(v),
+		y: l * Math.sin(v)
+	}
+}

@@ -2,23 +2,24 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<link href='http://fonts.googleapis.com/css?family=Ubuntu:400,700' rel='stylesheet' type='text/css'>
-		<link href='http://fonts.googleapis.com/css?family=Ubuntu+Mono' rel='stylesheet' type='text/css'>
+		<link href='http://fonts.googleapis.com/css?family=Ubuntu+Mono|Ubuntu:400,700' rel='stylesheet' type='text/css'>
 		<link rel="stylesheet" href="style.css">
 		<link rel="icon" type="image/png" href="favicon.png" />
 	</head>
 	<body oncontextmenu="return false;">
 		<div class="content">
 			<h1>Nanoacre</h1>
-			<div class="game-container">
-				<h2 class="lobby">Waiting for another player...</h2>
+			<div class="everything-container">
 				<div class="fullscreen-container">
-					<div class="canvas-wrapper">
+					<div class="game-container">
+						<h2 class="flashtext">Loading...</h2>
 						<canvas class="canvas" width="1000" height="500">UPGRADE YOUR BROWSER MF!</canvas>
 					</div>
 				</div>
 				<div class="settings">
 					<input type="button" class="fullscreen-button" value="Fullscreen">
+					<input type="button" class="create-lobby" value="Create Custom Lobby">
+					<img src="explain.png">
 				</div>
 			</div>
 		</div>
@@ -29,6 +30,8 @@
 		<script src="game/network.js"></script>
 		<script src="game/timeline.js"></script>
 		<script src="game/ui.js"></script>
+		<script src="game/state.js"></script>
+		<script src="game/particlesystem.js"></script>
 		<script src="game/runner.js"></script>
 	</body>
 </html>

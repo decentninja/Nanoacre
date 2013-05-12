@@ -1,7 +1,10 @@
 var TILE_SIZE = 1024;
 var PLAYER_RADIUS = 256;
 
-var SHOOTING_COOLDOWN = 1 * 60;
+var BULLET_RADIUS = 90;
+var SHOOTING_COOLDOWN = 3 * 60;
+var MAX_SHOTS = 3;
+var RELOAD_COOLDOWN = SHOOTING_COOLDOWN;
 
 ;(function() {
 "use strict";
@@ -20,32 +23,7 @@ Logic.prototype.destroy = function() {
 };
 
 Logic.prototype.initialState = function() {
-	var state = {
-		nbullets: 0,
-		bullets: [],
-		nunits: 0,
-		units: [],
-	};
-	for(var i = 0; i < this.map.height; i++) {
-		for(var j = 0; j < this.map.width; j++) {
-			var possibleteam = this.map.Tiles[i][j] - 100;
-			if (possibleteam >= 0) {
-				var position = {
-					x: (j + 1/2) * TILE_SIZE,
-					y: (i + 1/2) * TILE_SIZE
-				};
-				state.units.push({
-					id: state.nunits,
-					owning_player: possibleteam,
-					position: position,
-					target: position,
-					shooting_cooldown: 0
-				})
-				state.nunits++;
-			}
-		}
-	}
-	return state;
+	return new State(this.map)
 }
 
 Logic.prototype.moveOutFromWalls = function(pos) {
@@ -161,10 +139,16 @@ Logic.prototype.step = function(state, events) {
 
 			case "fire":
 				state.units.forEach(function(u) {
-					if (u.id === ev.who && u.shooting_cooldown == 0) {
+					if (u.id === ev.who && 
+						u.shooting_cooldown <= (MAX_SHOTS -1) * SHOOTING_COOLDOWN / MAX_SHOTS &&
+						(u.reload_cooldown || !u.shooting_cooldown)) {
 						var owning_player = u.owning_player;
 						var pos = deepCopy(u.position);
-						u.shooting_cooldown = SHOOTING_COOLDOWN;
+						u.shooting_cooldown += SHOOTING_COOLDOWN / MAX_SHOTS
+						u.reload_cooldown = RELOAD_COOLDOWN
+						if(u.shooting_cooldown >= SHOOTING_COOLDOWN) {
+							u.reload_cooldown = 0
+						}
 						var x = ev.towards.x - pos.x;
 						var y = ev.towards.y - pos.y;
 						var l = Math.sqrt(x*x + y*y)
@@ -191,8 +175,8 @@ Logic.prototype.step = function(state, events) {
 		b.position.x += b.direction.x * BULLET_SPEED;
 		b.position.y += b.direction.y * BULLET_SPEED;
 		state.units = state.units.filter(function(u) {
-			var distance = Math.sqrt(Math.pow(b.position.x - u.position.x, 2) + Math.pow(b.position.y - u.position.y, 2))
-			if((b.owning_player != u.owning_player) && distance <= PLAYER_RADIUS) {
+			var distanceSq = dist2(u.position, b.position);
+			if((b.owning_player != u.owning_player) && distanceSq <= Math.pow(PLAYER_RADIUS + BULLET_RADIUS, 2)) {
 				die = true;
 				return false;
 			} else {
@@ -210,8 +194,10 @@ Logic.prototype.step = function(state, events) {
 	});
 	state.units.forEach(this.moveUnit.bind(this));
 	state.units.forEach(function(u) {
-		if(u.shooting_cooldown) 
+		if(u.shooting_cooldown && u.reload_cooldown == 0) 
 			--u.shooting_cooldown;
+		if(u.reload_cooldown) 
+			--u.reload_cooldown;
 	});
 	return state;
 }
