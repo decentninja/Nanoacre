@@ -76,7 +76,7 @@ Particlesystem.prototype.add = function(x, y, dx, dy, style, burntime) {
 	while (this.particles.length > MAX_COUNT) {
 		this.particles.shift();
 	}
-}
+};
 
 /*
 	Creates explotion
