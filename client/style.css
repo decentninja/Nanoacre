@@ -8,15 +8,21 @@ body {
 }
 
 .content {
-	margin-left: auto;
-	margin-right: auto;
+	user-select: none;
+	-moz-user-select: -moz-none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
 }
 
 .content > h1 {
-	padding-top: 2%;
+	padding-top: 22px;
 	text-align: center;
 	font-weight: 700;
 	margin: 0px;
+	user-select: text;
+	-moz-user-select: text;
+	-webkit-user-select: text;
+	-ms-user-select: text;
 }
 
 .settings {
@@ -26,9 +32,8 @@ body {
 	bottom: 0;
 }
 
-.settings > img {
-	display: block;
-	margin: auto;
+.settings > input[type=button] {
+	float: right;
 }
 
 .help {
@@ -46,6 +51,7 @@ input[type=button] {
 	font-size: 18px;
 	padding-left: 7px;
 	padding-right: 7px;
+	margin: 0 6px 8px 0px;
 	border-radius: 4px;
 	font-family: 'Ubuntu Mono', monospace;
 	box-shadow: 0px 4px 0px #1D1D1D;
@@ -59,19 +65,21 @@ input[type=button]:active {
 }
 
 .flashtext {
+	position: absolute;
+	width: 100%;
+	margin-top: -37px;
 	transition: opacity 3s ease-out;
 	font-weight: 400;
 }
 
-html, body, .content, .fullscreen-container, .game-container {
+html, body, .content, .game-container {
 	height: 100%;
 }
-
-.everything-container {
-	height: 70%;
-	user-select: none;
-	-moz-user-select: -moz-none;
-	-webkit-user-select: none;
+.fullscreen-container {
+	position: absolute;
+	width: 100%;
+	top: 110px;
+	bottom: 30px;
 }
 
 .game-container {
@@ -102,4 +110,8 @@ html, body, .content, .fullscreen-container, .game-container {
 .fullscreen-container:-webkit-full-screen > .game-container {
 	display: table-cell;
 	vertical-align: middle;
+}
+
+.help, .create-lobby {
+	display: none;
 }

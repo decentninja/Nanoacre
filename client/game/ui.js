@@ -2,8 +2,8 @@
 
 var SELECTED_WIDTH = 3;
 
-var BORDER_WIDTH_START = 17.0;
-var BORDER_WIDTH_MID = 10.0;
+var BORDER_WIDTH_START = 13.0;
+var BORDER_WIDTH_MID = 7.0;
 var BORDER_BREAK_PONT = 0.1;
 var BORDER_CHANGE_FACTOR = 0.75;
 
@@ -34,7 +34,7 @@ function Ui(canvas_context, config, loadData) {
 
 Ui.prototype.registerInitialUnits = function(units) {
 	units.forEach(function(unit) {
-		if (unit.owning_player == this.playerId) {
+		if (unit.owning_player === this.playerId) {
 			this.ownedUnits.push(unit.id)
 		}
 	}, this)
@@ -43,7 +43,7 @@ Ui.prototype.registerInitialUnits = function(units) {
 
 Ui.prototype.render = function(deltatime, state) {
 	if (this.lastState) {
-		if (this.triedToFireWith) {
+		if (this.triedToFireWith !== null) {
 			for (var i = 0; i < this.lastState.units.length; i++) {
 				var unit = this.lastState.units[i]
 				if (unit.id === this.triedToFireWith) {
@@ -439,5 +439,3 @@ Ui.prototype.handleKeyDown = function(keycode, nextFrame) {
 	}
 	return null
 }
-
-Ui.prototype.handleKeyUp = function(keycode, nextFrame) {}
