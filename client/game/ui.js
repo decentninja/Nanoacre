@@ -202,6 +202,7 @@ Ui.prototype.renderUnit = function(unit, alive) {
 };
 
 Ui.prototype.renderShadows = function(units) {
+	// When dead, show everything.
 	if (!units.length)
 		return;
 

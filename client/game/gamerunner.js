@@ -145,7 +145,7 @@ GameRunner.prototype.loop = function() {
 				this.network.send("dead");
 				this.display("You're dead.", false);
 			}
-		}.bind(this), 1000);
+		}.bind(this), 300);
 	}
 	if (GetParams["noloop"])
 		return;
