@@ -36,29 +36,21 @@ body {
 	float: right;
 }
 
-.help {
-	text-align: center;
-	pointer-events: none;
-	width: 100%;
-	position: absolute;
-	bottom: 15px;
-}
-
-input[type=button] {
+input[type=button], button {
 	background-color: #208BB5;
 	border: none;
 	height: 25px;
 	font-size: 18px;
 	padding-left: 7px;
 	padding-right: 7px;
-	margin: 0 6px 8px 0px;
+	margin: 0 6px 8px;
 	border-radius: 4px;
 	font-family: 'Ubuntu Mono', monospace;
 	box-shadow: 0px 4px 0px #1D1D1D;
 	transition: all .1s ease;
 }
 
-input[type=button]:active {
+input[type=button]:active, button:active {
     box-shadow: none;
     position: relative;
     top: 2px;
@@ -67,7 +59,7 @@ input[type=button]:active {
 .flashtext {
 	position: absolute;
 	width: 100%;
-	margin-top: -37px;
+	margin-top: -39px;
 	transition: opacity 3s ease-out;
 	font-weight: 400;
 }
@@ -77,13 +69,14 @@ html, body, .content, .game-container {
 }
 .fullscreen-container {
 	position: absolute;
+	text-align: center;
 	width: 100%;
-	top: 110px;
+	top: 112px;
 	bottom: 30px;
 }
 
-.game-container {
-	text-align: center;
+.screen-hidden {
+	display: none !important;
 }
 
 .canvas {
@@ -112,6 +105,30 @@ html, body, .content, .game-container {
 	vertical-align: middle;
 }
 
-.help, .create-lobby {
-	display: none;
+.lobby-container {
+	text-align: center;
+}
+/* XXX make this responsive */
+.lobby-container > .logo {
+	display: block;
+	margin: 0 auto 40px;
+	background-color: #1D1D1D;
+}
+.explain {
+	float: left;
+}
+.lobby-line {
+	display: inline-block;
+}
+.lobby-line > .randomgame-button {
+	float: left;
+	font-size: 22px;
+	margin: 36px auto;
+	padding; 7px 14px;
+	line-height: 27px;
+	height: 68px;
+}
+
+.create-lobby {
+	margin-right: 0 !important;
 }

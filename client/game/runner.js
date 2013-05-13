@@ -56,8 +56,8 @@ Runner.prototype.start = function() {
 		}
 	}.bind(this));
 
-	var customgameButton = this.container.querySelector(".create-lobby");
-	customgameButton.addEventListener("click", function() {
+	this.customGameButton = this.container.querySelector(".create-lobby");
+	this.customGameButton.addEventListener("click", function() {
 		var players = window.prompt("How many players?", 2); // XXX BAAAAD
 		if (isNaN(players) || players < 2)
 			return;
@@ -69,6 +69,13 @@ Runner.prototype.start = function() {
 		}
 		location.href = "?lobby=" + id + "&players=" + players;
 	});
+	this.showNonGameOptions(true);
+
+	var randomGameButton = this.container.querySelector(".randomgame-button");
+	randomGameButton.addEventListener("click", function() {
+		randomGameButton.style.display = "none";
+		this.requestGame("default", 2);
+	}.bind(this));
 
 	if (debug) {
 		var loadData = {
@@ -88,38 +95,39 @@ Runner.prototype.start = function() {
 				]
 			}
 		};
+		this.showNonGameOptions(false);
 		this.prepareGame(loadData);
 	}
 	else {
-		var wsServer = GetParams["ws"] || location.host;
-		var lobby = GetParams["lobby"] || "default";
-		var players = GetParams["players"] || 2;
-		if (lobby != "default") {
-			this.display("Share this url to play with friends", false); // XXX this will go away right after...
+		if (GetParams["lobby"]) {
+			var lobby = GetParams["lobby"] || "default";
+			var players = GetParams["players"] || 2;
+			this.requestGame(lobby, players);
+			this.display("Share this url to play with friends", false);
+			randomGameButton.style.display = "none";
 		}
-		this.socket = new WebSocket("ws://" + wsServer + "/ws?custom=" + lobby + "&players=" + players);
-		this.display("Waiting for another player...", false);
-		this.socket.onmessage = this.socketOnMessageStartup.bind(this);
-
-		// for debugging
-		window.socket = this.socket;
 	}
 };
 
 Runner.prototype.waitForNewGame = function() {
 	this.socket.onmessage = function(e) {
-		this.gameRunner.destroy();
+		if (this.gameRunner) {
+			this.gameRunner.destroy();
+			this.gameRunner = null;
+		}
 		this.socketOnMessageStartup(e);
 	}.bind(this);
+	this.showNonGameOptions(false);
 };
 
-Runner.prototype.requestRandomGame = function() {
-	// XXX we really really shouldn't do this
-	location.reload();
-	return;
+Runner.prototype.requestGame = function(lobby, players) {
+	var wsServer = GetParams["ws"] || location.host;
+	this.socket = new WebSocket("ws://" + wsServer + "/ws?custom=" + lobby + "&players=" + players);
 	this.display("Waiting for another player...", false);
-	// XXX send some sort of "new game" message here
 	this.waitForNewGame();
+
+	// for debugging
+	window.socket = this.socket;
 };
 
 Runner.prototype.socketOnMessageStartup = function(e) {
@@ -127,6 +135,8 @@ Runner.prototype.socketOnMessageStartup = function(e) {
 };
 
 Runner.prototype.prepareGame = function(loadData) {
+	this.container.querySelector(".game-container").classList.remove("screen-hidden");
+	this.container.querySelector(".lobby-container").classList.add("screen-hidden");
 	this.gameRunner = new GameRunner(loadData, this.socket, this.canvas, this.config,
 			this.display.bind(this), this.endFunc.bind(this), this.waitForNewGame.bind(this));
 	this.gameRunner.start();
@@ -158,12 +168,15 @@ Runner.prototype.endFunc = function(condition) {
 	rematch.onclick = function() {
 		this.gameRunner.requestRematch();
 	}.bind(this);
-	this.container.querySelector(".newgame").onclick = function() {
-		this.requestRandomGame();
-	}.bind(this);
+	this.container.querySelector(".newgame").addEventListener("click", function() {
+		// N.B.: This hides the button itself, so we don't need to unregister
+		// event listeners or anything.
+		this.requestGame("default", 2);
+	}.bind(this));
 	if (condition == "disconnect") {
 		rematch.setAttribute("disabled", true);
 	}
+	this.showNonGameOptions(true);
 };
 
 Runner.prototype.display = function(text, fade) {
@@ -178,6 +191,10 @@ Runner.prototype.display = function(text, fade) {
 			el.style.opacity = 0;
 		}, 1000);
 	}
+};
+
+Runner.prototype.showNonGameOptions = function(show) {
+	this.customGameButton.style.display = (show ? "" : "none");
 };
 
 window.onkeydown = function(ev) {

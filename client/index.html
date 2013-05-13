@@ -11,17 +11,23 @@
 		<div class="content">
 			<h1>Nanoacre</h1>
 			<div class="fullscreen-container">
-				<div class="game-container">
-					<h2 class="flashtext">Loading...</h2>
+				<h2 class="flashtext"></h2>
+				<div class="lobby-container">
+					<img src="logo.png" class="logo">
+					<div class="lobby-line">
+						<div class="explain">
+							<img src="explain.png" alt="1, 2, 3 to select units. Left click to shoot. Right click to move.">
+						</div>
+						<button class="randomgame-button">Random<br>Game</button>
+					</div>
+				</div>
+				<div class="game-container screen-hidden">
 					<canvas class="canvas" width="1000" height="500">Please upgrade to a modern web browser.</canvas>
 				</div>
 			</div>
 			<div class="settings">
 				<input type="button" class="fullscreen-button" value="Fullscreen">
 				<input type="button" class="create-lobby" value="Create Custom Lobby">
-			</div>
-			<div class="help">
-				<img src="explain.png">
 			</div>
 		</div>
 		<script src="game/util.js"></script>
