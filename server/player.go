@@ -24,8 +24,10 @@ type message struct {
 	p    *player
 }
 
+// Handle disconnect
+// Listen for messages and send to game
 func (p *player) listen() {
-	for { //TODO: handle connection closing
+	for {
 		mess := &message{
 			p: p,
 		}

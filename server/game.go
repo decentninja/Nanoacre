@@ -31,6 +31,7 @@ type loadData struct {
 	Field   *playfield
 }
 
+// Listen on channel until enough players to start ("Waiting for players..." on client)
 func (g *game) gatherPlayers() {
 	for p := range g.parentCustom.newPlayerChannel {
 		p.ch = g.ch
@@ -55,6 +56,7 @@ func (g *game) gatherPlayers() {
 	g.run()
 }
 
+// Disconnect handling
 func (g *game) removePlayer(p *player) {
 	for i, pl := range g.players {
 		if pl == p {
@@ -64,6 +66,8 @@ func (g *game) removePlayer(p *player) {
 	}
 }
 
+// Selects field
+// Sends loadData to client
 func (g *game) load() {
 	field := g.parentCustom.getField()
 	for i, p := range g.players {
@@ -76,6 +80,7 @@ func (g *game) load() {
 	log.Printf("Game %s: sent loadData.\n", g.str())
 }
 
+// Message loop
 func (g *game) run() {
 	for mess := range g.ch {
 		g.handleMessage(mess)
@@ -88,6 +93,7 @@ func (g *game) run() {
 	log.Printf("Game %s is closing down.\n", g.str())
 }
 
+// Answers client requests
 func (g *game) handleMessage(mess *message) {
 	switch mess.data {
 	case "pong":
@@ -121,6 +127,7 @@ func (g *game) handleMessage(mess *message) {
 	}
 }
 
+// Check latency when all are ready
 func (g *game) latencyIfAllReady() {
 	for _, p := range g.players {
 		if !p.state.ready {
@@ -131,6 +138,7 @@ func (g *game) latencyIfAllReady() {
 	g.sendToAll(PING)
 }
 
+// Start when everyone are latency checked
 func (g *game) startIfAllChecked() {
 	for _, p := range g.players {
 		if !p.state.lateChecked {
@@ -142,6 +150,7 @@ func (g *game) startIfAllChecked() {
 	log.Printf("Game %s: sent start signal.\n", g.str())
 }
 
+// Win/loss/draw logic
 func (g *game) endIfAllDead() {
 	alive := 0
 	for _, p := range g.players {
@@ -203,6 +212,7 @@ func (g *game) sendToAll(data string) {
 	}
 }
 
+// to string
 func (g *game) str() string {
 	return fmt.Sprintf("%s:%d", g.parentCustom.name, g.id)
 }

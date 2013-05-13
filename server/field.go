@@ -93,6 +93,7 @@ func readFieldFromFile(folder, file string) *playfield {
 	}
 }
 
+// Awesome error stuff
 func d(err interface{}) {
 	if err != nil {
 		panic(err)

@@ -23,6 +23,8 @@ type custom struct {
 	numPlayers       int
 }
 
+// Read map data from folder
+// Register websocket handles
 func SetupSocketServer(field string) {
 	var fields map[int][]*playfield
 	if field == "" {
@@ -40,6 +42,8 @@ func SetupSocketServer(field string) {
 	http.Handle("/ws", handler)
 }
 
+// Create new custom game if needed
+// Sends players to newPlayerChannel
 func (s *server) newConnection() func(*websocket.Conn) {
 	return func(ws *websocket.Conn) {
 		query := ws.Request().URL.Query()
@@ -73,6 +77,8 @@ func (s *server) newConnection() func(*websocket.Conn) {
 	}
 }
 
+// Create a game with default settings
+// (First game)
 func (s *server) newDefaultCustom(name string) *custom {
 	return s.newCustom(name, 2, make([]string, 0, 0))
 }
@@ -94,6 +100,7 @@ func (s *server) newCustom(name string, numPlayers int, options []string) *custo
 	return c
 }
 
+// Creates new game that listens for players until start.
 func (c *custom) spawnNewGame() {
 	g := &game{
 		players:      make([]*player, 0),
@@ -106,6 +113,7 @@ func (c *custom) spawnNewGame() {
 	go g.gatherPlayers()
 }
 
+// Return random field
 func (c *custom) getField() *playfield {
 	return c.fields[rand.Intn(len(c.fields))]
 }
