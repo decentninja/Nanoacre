@@ -3,13 +3,8 @@
 function deepCopy(obj) {
 	if (typeof obj !== "object" || obj === null)
 		return obj;
-	if (obj instanceof Array) {
-		var ret = [];
-		ret.length = obj.length;
-		for (var i = 0; i < obj.length; ++i)
-			ret[i] = deepCopy(obj[i]);
-		return ret;
-	}
+	if (obj instanceof Array)
+		return obj.map(deepCopy);
 	var ret = {};
 	for (var a in obj)
 		ret[a] = deepCopy(obj[a]);
@@ -42,19 +37,22 @@ var GetParams = (function(searchstr) {
 
 var debug = GetParams["debug"] || 0;
 
+function sq(x) {
+	return x*x;
+}
+
 function dist2(a, b) {
-	var dx = a.x - b.x, dy = a.y - b.y;
-	return dx*dx + dy*dy;
+	return sq(a.x - b.x) + sq(a.y - b.y);
 }
 
 function randrange(a, b) {
 	return Math.random() * (b - a) + a;
 }
 
-function randvector(l) {
-	var v = 2 * Math.PI * Math.random()
+function randvector(len) {
+	var v = 2 * Math.PI * Math.random();
 	return {
-		x: l * Math.cos(v),
-		y: l * Math.sin(v)
-	}
+		x: len * Math.cos(v),
+		y: len * Math.sin(v)
+	};
 }

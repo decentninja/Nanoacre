@@ -6,14 +6,14 @@
 var BUFFER_SIZE = 512;
 var MASK = BUFFER_SIZE - 1;
 
-window.Timeline = function(map) {
+function Timeline(map) {
 	this.curTime = 0;
 	this.map = map;
 	this.logic = new Logic(map);
 	this.events = [];
 	this.states = new Array(BUFFER_SIZE);
 	this.states[0] = this.logic.initialState();
-};
+}
 
 Timeline.prototype.destroy = function() {
 	this.logic.destroy();
@@ -27,7 +27,7 @@ Timeline.prototype.step = function() {
 Timeline.prototype._progress = function(prevT) {
 	var newState = this.logic.step(this.states[prevT & MASK], this.events[prevT + 1] || []);
 	this.states[(prevT + 1) & MASK] = newState;
-}
+};
 
 Timeline.prototype.insert = function(event) {
 	var time = event.time;
@@ -52,7 +52,7 @@ Timeline.prototype.insert = function(event) {
 		for (var t = time; t <= this.curTime; ++t)
 			this._progress(t-1);
 	}
-}
+};
 
 Timeline.prototype.getCurrentState = function() {
 	return this.states[this.curTime & MASK];
@@ -96,5 +96,7 @@ function deepArbitraryCompare(a, b) {
 	}
 	return 0;
 }
+
+window.Timeline = Timeline;
 
 })();

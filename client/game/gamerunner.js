@@ -1,7 +1,7 @@
 (function() {
 "use strict";
 
-window.GameRunner = function(loadData, socket, canvas, config,
+function GameRunner(loadData, socket, canvas, config,
                              displayCallback, gameEndedCallback, rematchCallback) {
 	this.loadData = loadData;
 	this.socket = socket;
@@ -11,7 +11,7 @@ window.GameRunner = function(loadData, socket, canvas, config,
 	this.gameEndedCallback = gameEndedCallback;
 	this.rematchCallback = rematchCallback;
 	this.destroyed = false;
-};
+}
 
 GameRunner.prototype.destroy = function() {
 	if (this.game)
@@ -36,7 +36,7 @@ GameRunner.prototype.start = function() {
 	this.playerId = this.loadData.Id;
 	this.ui = new Ui(canvasCx, this.config, this.loadData);
 	this.game = new Game(this.loadData.Field, this.config, this.ui);
-	if (socket)
+	if (this.socket)
 		this.network = new Network(this.socket, this.eventqueue);
 	else
 		this.network = new MockNetwork();
@@ -164,5 +164,7 @@ GameRunner.prototype.addLineEvent = function(ev) {
 GameRunner.prototype.requestRematch = function() {
 	this.network.send("rematch");
 };
+
+window.GameRunner = GameRunner;
 
 })();

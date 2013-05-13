@@ -1,8 +1,5 @@
+(function() {
 "use strict";
-
-// For debug
-var runner;
-var socket = null;
 
 function initialize() {
 	var config = {
@@ -29,17 +26,20 @@ function initialize() {
 		},
 	};
 	var container = document.querySelector(".content");
-	runner = new Runner(container, config);
+	var runner = new Runner(container, config);
 	runner.start();
+
+	// for debugging
+	window.runner = runner;
 }
 
-window.Runner = function(container, config) {
+function Runner(container, config) {
 	this.canvas = container.querySelector("canvas");
 	this.container = container;
 	this.config = config;
 
 	this.flashtext = container.querySelector(".flashtext");
-};
+}
 
 Runner.prototype.start = function() {
 	var container = this.container;
@@ -97,9 +97,12 @@ Runner.prototype.start = function() {
 		if (lobby != "default") {
 			this.display("Share this url to play with friends", false); // XXX this will go away right after...
 		}
-		socket = this.socket = new WebSocket("ws://" + wsServer + "/ws?custom=" + lobby + "&players=" + players);
+		this.socket = new WebSocket("ws://" + wsServer + "/ws?custom=" + lobby + "&players=" + players);
 		this.display("Waiting for another player...", false);
 		this.socket.onmessage = this.socketOnMessageStartup.bind(this);
+
+		// for debugging
+		window.socket = this.socket;
 	}
 };
 
@@ -109,7 +112,7 @@ Runner.prototype.socketOnMessageStartup = function(e) {
 
 Runner.prototype.prepareGame = function(loadData) {
 	this.gameRunner = new GameRunner(loadData, this.socket, this.canvas, this.config,
-	        this.display.bind(this), this.endFunc.bind(this), this.rematchFunc.bind(this));
+			this.display.bind(this), this.endFunc.bind(this), this.rematchFunc.bind(this));
 	this.gameRunner.start();
 };
 
@@ -176,5 +179,8 @@ window.onkeydown = function(ev) {
 	}
 };
 
+window.Runner = Runner;
+
 initialize();
 
+})();

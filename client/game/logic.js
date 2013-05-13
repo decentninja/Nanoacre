@@ -23,8 +23,8 @@ Logic.prototype.destroy = function() {
 };
 
 Logic.prototype.initialState = function() {
-	return new State(this.map)
-}
+	return new State(this.map);
+};
 
 Logic.prototype.moveOutFromWalls = function(pos) {
 	pos = deepCopy(pos);
@@ -69,7 +69,7 @@ Logic.prototype.moveOutFromWalls = function(pos) {
 		pos = {x: (px+1/2) * TILE_SIZE, y: (py+1/2) * TILE_SIZE};
 
 	return pos;
-}
+};
 
 // Check whether a position is free from wall collisions, in the most
 // inefficient possible way.
@@ -126,7 +126,7 @@ Logic.prototype.step = function(state, events) {
 	var map = this.map, self = this;
 	state = deepCopy(state);
 	events.forEach(function(ev) {
-		switch(ev.type) {
+		switch (ev.type) {
 			case "move":
 				state.units.forEach(function(u) {
 					if (u.id === ev.who) {
@@ -139,25 +139,24 @@ Logic.prototype.step = function(state, events) {
 
 			case "fire":
 				state.units.forEach(function(u) {
-					if (u.id === ev.who && 
-						u.shooting_cooldown <= (MAX_SHOTS -1) * SHOOTING_COOLDOWN / MAX_SHOTS &&
-						(u.reload_cooldown || !u.shooting_cooldown)) {
+					if (u.id === ev.who && (u.reload_cooldown || !u.shooting_cooldown) &&
+							u.shooting_cooldown <= (MAX_SHOTS -1) * SHOOTING_COOLDOWN / MAX_SHOTS) {
 						var owning_player = u.owning_player;
 						var pos = deepCopy(u.position);
-						u.shooting_cooldown += SHOOTING_COOLDOWN / MAX_SHOTS
-						u.reload_cooldown = RELOAD_COOLDOWN
-						if(u.shooting_cooldown >= SHOOTING_COOLDOWN) {
-							u.reload_cooldown = 0
+						u.shooting_cooldown += SHOOTING_COOLDOWN / MAX_SHOTS;
+						u.reload_cooldown = RELOAD_COOLDOWN;
+						if (u.shooting_cooldown >= SHOOTING_COOLDOWN) {
+							u.reload_cooldown = 0;
 						}
 						var x = ev.towards.x - pos.x;
 						var y = ev.towards.y - pos.y;
-						var l = Math.sqrt(x*x + y*y)
+						var dist = Math.sqrt(x*x + y*y);
 						var dir = {
-							x: x / l,
-							y: y / l,
-						}
-						pos.x += dir.x * TILE_SIZE
-						pos.y += dir.y * TILE_SIZE
+							x: x / dist,
+							y: y / dist,
+						};
+						pos.x += dir.x * TILE_SIZE;
+						pos.y += dir.y * TILE_SIZE;
 						state.nbullets++;
 						state.bullets.push({
 							id: state.nbullets,
@@ -176,31 +175,34 @@ Logic.prototype.step = function(state, events) {
 		b.position.y += b.direction.y * BULLET_SPEED;
 		state.units = state.units.filter(function(u) {
 			var distanceSq = dist2(u.position, b.position);
-			if((b.owning_player != u.owning_player) && distanceSq <= Math.pow(PLAYER_RADIUS + BULLET_RADIUS, 2)) {
+			if (!die && b.owning_player != u.owning_player &&
+					distanceSq <= sq(PLAYER_RADIUS + BULLET_RADIUS)) {
 				die = true;
 				return false;
-			} else {
-				return true;
 			}
+			return true;
 		});
 		// Outside map
-		if(b.position.x < -TILE_SIZE || b.position.x > (map.width+1)* TILE_SIZE || b.position.y < -TILE_SIZE || b.position.y > (1+map.height)*TILE_SIZE) {
+		if (b.position.x < -TILE_SIZE ||
+			b.position.y < -TILE_SIZE ||
+			b.position.x > (map.width + 1) * TILE_SIZE ||
+			b.position.y > (map.height + 1) * TILE_SIZE) {
 			die = true;
 		}
-		if(!self.freespace(b.position, 0)) {
-			die = true
+		if (!self.freespace(b.position, 0)) {
+			die = true;
 		}
 		return !die;
 	});
 	state.units.forEach(this.moveUnit.bind(this));
 	state.units.forEach(function(u) {
-		if(u.shooting_cooldown && u.reload_cooldown == 0) 
+		if (u.shooting_cooldown && u.reload_cooldown === 0)
 			--u.shooting_cooldown;
-		if(u.reload_cooldown) 
+		if (u.reload_cooldown)
 			--u.reload_cooldown;
 	});
 	return state;
-}
+};
 
 
 // Path finding; talks to compiled code. Beware of dragons.

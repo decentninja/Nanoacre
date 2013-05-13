@@ -1,10 +1,13 @@
+(function() {
+"use strict";
+
 function State(map) {
-	this.nbullets = 0
-	this.bullets = []
-	this.nunits = 0
-	this.units = []
-	for(var i = 0; i < map.height; i++) {
-		for(var j = 0; j < map.width; j++) {
+	this.nbullets = 0;
+	this.bullets = [];
+	this.nunits = 0;
+	this.units = [];
+	for (var i = 0; i < map.height; i++) {
+		for (var j = 0; j < map.width; j++) {
 			var possibleteam = map.Tiles[i][j] - 100;
 			if (possibleteam >= 0) {
 				var position = {
@@ -18,7 +21,7 @@ function State(map) {
 					target: position,
 					shooting_cooldown: 0,
 					reload_cooldown: 0,
-				})
+				});
 				this.nunits++;
 			}
 		}
@@ -26,11 +29,15 @@ function State(map) {
 }
 
 State.prototype.getRemainingPlayers = function() {
-	var players = []
+	var players = [];
 	this.units.forEach(function(unit) {
-		if(players.indexOf(unit.owning_player) == -1) {
-			players.push(unit.owning_player)
+		if (players.indexOf(unit.owning_player) == -1) {
+			players.push(unit.owning_player);
 		}
-	})
-	return players
-}
+	});
+	return players;
+};
+
+window.State = State;
+
+})();

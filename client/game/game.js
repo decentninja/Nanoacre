@@ -1,12 +1,15 @@
+(function() {
+"use strict";
+
 var TIME_STEP = 16;
 
 function Game(map, config, ui) {
-	this.map = map
-	this.config = config
-	this.ui = ui
-	this.timeline = new Timeline(map)
-	this.ui.registerInitialUnits(this.timeline.getCurrentState().units)
-	this.timeBehind = 0
+	this.map = map;
+	this.config = config;
+	this.ui = ui;
+	this.timeline = new Timeline(map);
+	this.ui.registerInitialUnits(this.timeline.getCurrentState().units);
+	this.timeBehind = 0;
 }
 
 Game.prototype.destroy = function() {
@@ -15,15 +18,15 @@ Game.prototype.destroy = function() {
 
 Game.prototype.step = function(deltatime, eventqueue) {
 	while (eventqueue.length > 0) {
-		this.timeline.insert(eventqueue.pop())
+		this.timeline.insert(eventqueue.pop());
 	}
 
-	this.timeBehind += deltatime
+	this.timeBehind += deltatime;
 	while (this.timeBehind >= TIME_STEP) {
-		this.timeBehind -= TIME_STEP
-		this.timeline.step()
+		this.timeBehind -= TIME_STEP;
+		this.timeline.step();
 	}
-	this.ui.render(deltatime, this.timeline.getCurrentState())
+	this.ui.render(deltatime, this.timeline.getCurrentState());
 };
 
 Game.prototype.getNextFrame = function() {
@@ -31,5 +34,8 @@ Game.prototype.getNextFrame = function() {
 };
 
 Game.prototype.getRemainingPlayers = function() {
-	return this.timeline.getCurrentState().getRemainingPlayers()
-}
+	return this.timeline.getCurrentState().getRemainingPlayers();
+};
+
+window.Game = Game;
+})();
