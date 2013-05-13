@@ -21,12 +21,8 @@ GameRunner.prototype.destroy = function() {
 };
 
 GameRunner.prototype.start = function() {
-	var canvasCx = this.canvas.getContext("2d");
 	this.loadData.Field.width = this.loadData.Field.Tiles[0].length;
 	this.loadData.Field.height = this.loadData.Field.Tiles.length;
-	this.canvas.width = this.loadData.Field.width * TILE_RENDER_SIZE;
-	this.canvas.height = this.loadData.Field.height * TILE_RENDER_SIZE;
-	this.real_map_width = this.canvas.width;
 
 	this.resizeHandler = this.handleResize.bind(this);
 	this.handleResize();
@@ -34,12 +30,14 @@ GameRunner.prototype.start = function() {
 
 	this.eventqueue = [];
 	this.playerId = this.loadData.Id;
-	this.ui = new Ui(canvasCx, this.config, this.loadData);
+	this.ui = new Ui(this.canvas, this.config, this.loadData);
 	this.game = new Game(this.loadData.Field, this.config, this.ui);
 	if (this.socket)
 		this.network = new Network(this.socket, this.eventqueue);
 	else
 		this.network = new MockNetwork();
+
+	this.ui.setupCanvas();
 
 	this.network.takeOverSocket();
 	this.network.ready(this.startFunc.bind(this), this.endFunc.bind(this), this.rematchCallback);
@@ -73,7 +71,7 @@ GameRunner.prototype.registerEventListeners = function() {
 		// If we use jQuery, this is just (ev.pageX - $(ev).offset().left), etc.
 		var docElem = document.documentElement;
 		var bclr = that.canvas.getBoundingClientRect();
-		var scale = bclr.width / that.real_map_width;
+		var scale = bclr.width / that.canvas.width;
 		var x = ev.pageX - (bclr.left + window.pageXOffset - docElem.clientTop);
 		var y = ev.pageY - (bclr.top + window.pageYOffset - docElem.clientLeft);
 		x = Math.round(x / scale);

@@ -40,7 +40,7 @@ function Unit(id, team, position) {
 };
 
 Unit.prototype.canFire = function() {
-	return this.shooting_cooldown <= (MAX_SHOTS -1) * SHOOTING_COOLDOWN / MAX_SHOTS
+	return this.shooting_cooldown <= (MAX_SHOTS - 1) * SHOOTING_COOLDOWN / MAX_SHOTS
 	       && (this.reload_cooldown || !this.shooting_cooldown);
 };
 
