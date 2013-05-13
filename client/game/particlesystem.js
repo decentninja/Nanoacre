@@ -36,9 +36,6 @@ function Particlesystem(ctx) {
 }
 
 Particlesystem.prototype.update = function(deltatime) {
-	while (this.particles.length > MAX_COUNT) {
-		this.particles.shift();
-	}
 	this.particles = this.particles.filter(function(particle) {
 		if(particle.timeleft < 0) {
 			return false;  // kill
@@ -56,12 +53,18 @@ Particlesystem.prototype.render = function() {
 	ctx.globalAlpha = 1;
 };
 
+Particlesystem.prototype.add = function(x, y, dx, dy, style, burntime) {
+	this.particles.push(new Particle(x, y, dx, dy, style, burntime));
+	while (this.particles.length > MAX_COUNT) {
+		this.particles.shift();
+	}
+}
 Particlesystem.prototype.explosion = function(x, y, style, away) {
 	for(var i = 0; i < 100; i++) {
 		var dir = randvector(randrange(0, 3));
 		dir.x += away.x * 5;
 		dir.y += away.y * 5;
-		this.particles.push(new Particle(x, y, dir.x, dir.y, style, 500));
+		this.add(x, y, dir.x, dir.y, style, 500);
 	}
 };
 
