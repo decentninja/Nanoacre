@@ -19,6 +19,9 @@ var UI_RENDER_FACTOR = TILE_RENDER_SIZE / TILE_SIZE;
 var BULLET_LENGTH = 50;
 var BULLET_WIDTH = UI_RENDER_FACTOR * BULLET_RADIUS;
 
+/*
+	Creates new particle system
+ */
 function Ui(canvas, config, loadData) {
 	this.ctx = canvas.getContext("2d");
 	this.config = config;
@@ -33,12 +36,18 @@ function Ui(canvas, config, loadData) {
 	this.borderWidth = 0;
 }
 
+/*
+	Sets canvas size
+ */
 Ui.prototype.setupCanvas = function() {
 	var canvas = this.ctx.canvas;
 	canvas.width = this.map.width * TILE_RENDER_SIZE;
 	canvas.height = this.map.height * TILE_RENDER_SIZE;
 };
 
+/*
+	Separates unit control
+ */
 Ui.prototype.registerInitialUnits = function(units) {
 	units.forEach(function(unit) {
 		if (unit.owning_player === this.playerId) {
@@ -48,6 +57,14 @@ Ui.prototype.registerInitialUnits = function(units) {
 	this.selection = this.ownedUnits[0];
 };
 
+/*
+	Updates last state variable
+	Compares current state with last state
+	Register deadlings and creates explosions
+	Clears canvas
+	Renders bullets, map
+	Calls units, particles and shadows
+ */
 Ui.prototype.render = function(deltatime, state) {
 	if (this.lastState) {
 		if (this.triedToFireWith !== null) {
@@ -165,6 +182,10 @@ Ui.prototype.render = function(deltatime, state) {
 	//this.drawBorder();
 };
 
+/*
+	Calculate unit position
+	Renders selection circle, deadness and shooting cooldown
+ */
 Ui.prototype.renderUnit = function(unit, alive) {
 	var x = unit.position.x * UI_RENDER_FACTOR;
 	var y = unit.position.y * UI_RENDER_FACTOR;
@@ -201,6 +222,40 @@ Ui.prototype.renderUnit = function(unit, alive) {
 	}
 };
 
+/*
+	Precompute player dot location
+ */
+Ui.prototype.precomputeDots = function(maxN) {
+	this.dots = new Array(maxN);
+	for (var i = 0; i <= maxN; i++) {
+		this.dots[i] = new Array(i);
+		var firstAngle = -Math.PI/2 - (i - 1)*DOT_DISTANCE/2;
+		for (var j = 0; j < i; j++) {
+			this.dots[i][j] = [Math.cos(firstAngle + j * DOT_DISTANCE), Math.sin(firstAngle + j * DOT_DISTANCE)];
+		}
+	}
+};
+
+/*
+	Part of renderUnit
+ */
+Ui.prototype.drawDots = function(x, y, n, radiusFromPlayer, dotRadius) {
+	if (!this.dots || n >= this.dots.length)
+		this.precomputeDots(Math.max(5, n));
+
+	for (var i = 0; i < this.dots[n].length; i++) {
+		this.ctx.beginPath();
+		this.ctx.arc(x + radiusFromPlayer * this.dots[n][i][0],
+		             y + radiusFromPlayer * this.dots[n][i][1],
+		             dotRadius, 0, Math.PI*2, false);
+		this.ctx.fill();
+	}
+};
+
+/*
+	Calls shadow logic
+	Renders over shadow mask
+ */
 Ui.prototype.renderShadows = function(units) {
 	// When dead, show everything.
 	if (!units.length)
@@ -208,13 +263,16 @@ Ui.prototype.renderShadows = function(units) {
 
 	this.ctx.save();
 	for (var i = 0; i < units.length; ++i) {
-		this.pathShadowsForUnit(units[i]);
+		this.clipShadowsForUnit(units[i]);
 	}
 	this.ctx.fillStyle = this.config.colors.shadow;
 	this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 	this.ctx.restore();
 };
 
+/*
+	Asks if tile blocks line of sight
+ */
 Ui.prototype.blocksLOS = function(y, x) {
 	if (y < 0 || y >= this.map.Tiles.length ||
 		x < 0 || x >= this.map.Tiles[0].length) {
@@ -223,7 +281,10 @@ Ui.prototype.blocksLOS = function(y, x) {
 	return (this.map.Tiles[y][x] === 1);
 };
 
-Ui.prototype.pathShadowsForUnit = function(unit) {
+/*
+	Clips the canvas to the shadows for the current unit
+ */
+Ui.prototype.clipShadowsForUnit = function(unit) {
 	var unitpos = {
 		x: unit.position.x * UI_RENDER_FACTOR,
 		y: unit.position.y * UI_RENDER_FACTOR
@@ -286,6 +347,9 @@ Ui.prototype.pathShadowsForUnit = function(unit) {
 	this.ctx.clip();
 };
 
+/*
+	Draw path for a shadow polygon
+ */
 Ui.prototype.pathShadowForUnit = function(base, a, b) {
 	if (dist2(base, a) < 1e-5 || dist2(base, b) < 1e-5)
 		return;
@@ -356,30 +420,6 @@ Ui.prototype.pathShadowForUnit = function(base, a, b) {
 	ctx.lineTo(a.x, a.y);
 };
 
-Ui.prototype.precomputeDots = function(maxN) {
-	this.dots = new Array(maxN);
-	for (var i = 0; i <= maxN; i++) {
-		this.dots[i] = new Array(i);
-		var firstAngle = -Math.PI/2 - (i - 1)*DOT_DISTANCE/2;
-		for (var j = 0; j < i; j++) {
-			this.dots[i][j] = [Math.cos(firstAngle + j * DOT_DISTANCE), Math.sin(firstAngle + j * DOT_DISTANCE)];
-		}
-	}
-};
-
-Ui.prototype.drawDots = function(x, y, n, radiusFromPlayer, dotRadius) {
-	if (!this.dots || n >= this.dots.length)
-		this.precomputeDots(Math.max(5, n));
-
-	for (var i = 0; i < this.dots[n].length; i++) {
-		this.ctx.beginPath();
-		this.ctx.arc(x + radiusFromPlayer * this.dots[n][i][0],
-		             y + radiusFromPlayer * this.dots[n][i][1],
-		             dotRadius, 0, Math.PI*2, false);
-		this.ctx.fill();
-	}
-};
-
 Ui.prototype.setBorder = function(borderStyle, force) {
 	if (force || this.borderStyle !== borderStyle || this.borderWidth < BORDER_WIDTH_MID) {
 		this.borderStyle = borderStyle;
@@ -421,6 +461,9 @@ Ui.prototype.drawBorder = function() {
 	}
 };
 
+/*
+	Return fire or move event for timeline
+ */
 Ui.prototype.handleMousedown = function(x, y, button, nextFrame) {
 	var type = this.config.buttons[button];
 	if (type === "fire")
@@ -436,6 +479,9 @@ Ui.prototype.handleMousedown = function(x, y, button, nextFrame) {
 	};
 };
 
+/*
+	Change unit selection
+ */
 Ui.prototype.handleKeyDown = function(keycode, nextFrame) {
 	if (keycode >= 49 && keycode <= 57) { //1-9
 		var index = keycode - 49;

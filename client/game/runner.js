@@ -1,6 +1,11 @@
 (function() {
 "use strict";
 
+/*
+	The begining of time
+	Constants for color and buttons
+	Query DOM
+ */
 function initialize() {
 	var config = {
 		colors: {
@@ -41,6 +46,11 @@ function Runner(container, config) {
 	this.flashtext = container.querySelector(".flashtext");
 }
 
+/*
+	Fullscreen button setup
+	Custom game button
+	Connects to server or debug mock data
+ */
 Runner.prototype.start = function() {
 	var container = this.container;
 
@@ -126,12 +136,19 @@ Runner.prototype.socketOnMessageStartup = function(e) {
 	this.prepareGame(JSON.parse(e.data));
 };
 
+/*
+	Creates GameRunner
+ */
 Runner.prototype.prepareGame = function(loadData) {
 	this.gameRunner = new GameRunner(loadData, this.socket, this.canvas, this.config,
 			this.display.bind(this), this.endFunc.bind(this), this.waitForNewGame.bind(this));
 	this.gameRunner.start();
 };
 
+/*
+	Displays win or loss and disconnect
+	Creates newgame and rematch buttons
+ */
 Runner.prototype.endFunc = function(condition) {
 	var newgamebutton = '<input class="newgame" type="button" value="New game"> ';
 	var rematchbutton = ' <input class="rematch" type="button" value="Rematch">';
@@ -166,6 +183,19 @@ Runner.prototype.endFunc = function(condition) {
 	}
 };
 
+/*
+	Kills gameRunner and restarts network
+ */
+Runner.prototype.rematchFunc = function() {
+	this.socket.onmessage = function(e) {
+		this.gameRunner.destroy();
+		this.socketOnMessageStartup(e);
+	}.bind(this);
+};
+
+/*
+	Displays flashtext on above game
+ */
 Runner.prototype.display = function(text, fade) {
 	var el = this.flashtext;
 	el.style.transition = "none";
@@ -180,8 +210,10 @@ Runner.prototype.display = function(text, fade) {
 	}
 };
 
+/*
+	Ctrl+A is annoying
+ */
 window.onkeydown = function(ev) {
-	// Ctrl+A is annoying on Firefox
 	if (ev.keyCode === 65 && (ev.ctrlKey || ev.accelKey)) {
 		ev.preventDefault();
 		return;

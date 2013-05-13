@@ -1,6 +1,9 @@
 (function() {
 "use strict";
 
+/*
+	Sets up loop ending variable destroyed
+ */
 function GameRunner(loadData, socket, canvas, config,
                              displayCallback, gameEndedCallback, rematchCallback) {
 	this.loadData = loadData;
@@ -13,6 +16,9 @@ function GameRunner(loadData, socket, canvas, config,
 	this.destroyed = false;
 }
 
+/*
+	Set variables to quit loop.
+ */
 GameRunner.prototype.destroy = function() {
 	if (this.game)
 		this.game.destroy();
@@ -20,6 +26,10 @@ GameRunner.prototype.destroy = function() {
 	this.deadAlready = true;
 };
 
+/*
+	Setting up resize window hooks.
+	Creating ui, game, and network. 
+ */
 GameRunner.prototype.start = function() {
 	this.loadData.Field.width = this.loadData.Field.Tiles[0].length;
 	this.loadData.Field.height = this.loadData.Field.Tiles.length;
@@ -43,6 +53,9 @@ GameRunner.prototype.start = function() {
 	this.network.ready(this.startFunc.bind(this), this.endFunc.bind(this), this.rematchCallback);
 };
 
+/*
+	Resize window logic.
+ */
 GameRunner.prototype.handleResize = function() {
 	var canvas = this.canvas;
 	var actualContainer = document.querySelector(".fullscreen-container");
@@ -59,6 +72,9 @@ GameRunner.prototype.handleResize = function() {
 	}
 };
 
+/*
+	Sets up handlers for mouse and keyboard.
+ */
 GameRunner.prototype.registerEventListeners = function() {
 	var that = this;
 	this.keyDownListener = function(ev) {
@@ -82,6 +98,9 @@ GameRunner.prototype.registerEventListeners = function() {
 	this.canvas.addEventListener("mousedown", this.mouseDownListener);
 };
 
+/*
+	Renders first frame and starts countdown.
+ */
 GameRunner.prototype.startFunc = function(clockAdjustment) {
 	this.display("Connected", true);
 	if (debug) {
@@ -94,6 +113,9 @@ GameRunner.prototype.startFunc = function(clockAdjustment) {
 	}
 };
 
+/*
+	Removes event handlers for everything.
+ */
 GameRunner.prototype.endFunc = function(condition) {
 	// (If the listeners have not yet been registered, this is a no-op.)
 	this.canvas.removeEventListener("mousedown", this.mouseDownListener);
@@ -119,6 +141,9 @@ GameRunner.prototype.prepareLoop = function(clockAdjustment) {
 	this.looprunning = true;
 };
 
+/*
+	Counts down to start
+ */
 GameRunner.prototype.countdown = function(callback) {
 	// Not secure...
 	this.display("Ready?", false);
@@ -131,6 +156,12 @@ GameRunner.prototype.countdown = function(callback) {
 	}.bind(this), 2000);
 };
 
+/*
+	Runner of gameloop
+	Ends loop
+	Calculates deltatime
+	Sends dead to server when this player is dead.
+ */
 GameRunner.prototype.loop = function() {
 	if (this.destroyed)
 		return;
@@ -152,6 +183,9 @@ GameRunner.prototype.loop = function() {
 	requestAnimationFrame(this.loop.bind(this));
 };
 
+/*
+	Sends events to server and pushes them to eventque on this computer.
+ */
 GameRunner.prototype.addLineEvent = function(ev) {
 	if (ev) {
 		this.network.send(ev);
@@ -159,6 +193,9 @@ GameRunner.prototype.addLineEvent = function(ev) {
 	}
 };
 
+/*
+	Send rematch
+ */
 GameRunner.prototype.requestRematch = function() {
 	this.network.send("rematch");
 };

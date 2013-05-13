@@ -13,19 +13,32 @@ var BULLET_SPEED = 175;
 
 var PLAYER_SPEED = 50;
 
+/*
+	Creates initial state
+	Sets up pathfinding
+ */
 window.Logic = function(map) {
 	this.map = map;
 	this.setupPathfinding();
 };
 
+/*
+	Clearing up C++ stuff in pathfinding
+ */
 Logic.prototype.destroy = function() {
 	this.clearPathfinding();
 };
 
+/*
+	Returns initial state
+ */
 Logic.prototype.initialState = function() {
 	return new State(this.map);
 };
 
+/*
+	Moves waypoint if inside wall
+ */
 Logic.prototype.moveOutFromWalls = function(pos) {
 	pos = deepCopy(pos);
 	function min2(a, b) {
@@ -90,6 +103,9 @@ Logic.prototype.freespace = function(pos, radius) {
 	return true;
 };
 
+/*
+	Update unit position
+ */
 Logic.prototype.moveUnit = function(u) {
 	var dirs = ['x', 'y'];
 	if (!u.path)
@@ -122,6 +138,12 @@ Logic.prototype.moveUnit = function(u) {
 	u.position = npos;
 };
 
+/*
+	Updates everything
+	Handles events for fire and move
+	Moves bullets
+	Updates cooldowns
+ */
 Logic.prototype.step = function(state, events) {
 	var map = this.map, self = this;
 	state = deepCopy(state);
@@ -204,8 +226,10 @@ Logic.prototype.step = function(state, events) {
 };
 
 
-// Path finding; talks to compiled code. Beware of dragons.
-
+/*
+	Pushes data to stack for C++ path finding code
+	Path finding; talks to compiled code. Beware of dragons.
+ */
 Logic.prototype.pathfindingComputePointsAndRects = function(points, rects) {
 	var map = this.map;
 	var ph = map.Tiles.length, pw = map.Tiles[0].length;
@@ -249,6 +273,9 @@ function pushArrayToStack(obj) {
 	return mem;
 }
 
+/*
+	The shit
+ */
 Logic.prototype.pathfind = function(from, to) {
 	var startStack = Runtime.stackSave();
 	try {
@@ -280,6 +307,9 @@ Logic.prototype.pathfind = function(from, to) {
 	}
 };
 
+/*
+	Runs initial pathfinding code
+ */
 Logic.prototype.setupPathfinding = function() {
 	var points = [], rects = [];
 	this.pathfindingComputePointsAndRects(points, rects);
@@ -309,6 +339,9 @@ Logic.prototype.setupPathfinding = function() {
 	this.ptrMap = ptrMap;
 };
 
+/*
+	C++ cleanup
+ */
 Logic.prototype.clearPathfinding = function() {
 	Module.ccall('clear_pathfinding',
 		'number',
