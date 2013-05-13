@@ -22,6 +22,12 @@ window.requestAnimationFrame =
 	window.webkitRequestAnimationFrame ||
 	window.msRequestAnimationFrame;
 
+window.cancelAnimationFrame =
+	window.cancelAnimationFrame ||
+	window.webkitCancelAnimationFrame ||
+	window.webkitCancelRequestAnimationFrame ||
+	window.mozCancelAnimationFrame;
+
 var GetParams = (function(searchstr) {
 	if (searchstr.charAt(0) == "?")
 		searchstr = searchstr.substr(1);

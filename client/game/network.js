@@ -1,10 +1,11 @@
 (function() {
 "use strict";
 
-window.Network = function(websocket, eventqueue, pongCount) {
+var PONG_COUNT = 10;
+
+window.Network = function(websocket, eventqueue) {
 	this.websocket = websocket
 	this.eventqueue = eventqueue
-	this.pongCount = pongCount
 	this.startFunc = null
 }
 
@@ -66,7 +67,7 @@ Network.prototype.onerror = function(e) {}
 
 Network.prototype.gotPing = function() {
 	var now = performance.now()
-	var done = this.latency.length + 1 >= this.pongCount
+	var done = (this.latency.length + 1 >= PONG_COUNT);
 	if (!done) {
 		this.send("pong")
 	} else {

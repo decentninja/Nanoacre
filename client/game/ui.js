@@ -361,5 +361,3 @@ Ui.prototype.handleKeyDown = function(keycode, nextFrame) {
 	}
 	return null
 }
-
-Ui.prototype.handleKeyUp = function(keycode, nextFrame) {}
