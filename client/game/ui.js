@@ -162,7 +162,7 @@ Ui.prototype.render = function(deltatime, state) {
 			}
 		}
 	}
-	this.drawBorder();
+	//this.drawBorder();
 };
 
 Ui.prototype.renderUnit = function(unit, alive) {
