@@ -106,13 +106,29 @@ Runner.prototype.start = function() {
 	}
 };
 
+Runner.prototype.waitForNewGame = function() {
+	this.socket.onmessage = function(e) {
+		this.gameRunner.destroy();
+		this.socketOnMessageStartup(e);
+	}.bind(this);
+};
+
+Runner.prototype.requestRandomGame = function() {
+	// XXX we really really shouldn't do this
+	location.reload();
+	return;
+	this.display("Waiting for another player...", false);
+	// XXX send some sort of "new game" message here
+	this.waitForNewGame();
+};
+
 Runner.prototype.socketOnMessageStartup = function(e) {
 	this.prepareGame(JSON.parse(e.data));
 };
 
 Runner.prototype.prepareGame = function(loadData) {
 	this.gameRunner = new GameRunner(loadData, this.socket, this.canvas, this.config,
-			this.display.bind(this), this.endFunc.bind(this), this.rematchFunc.bind(this));
+			this.display.bind(this), this.endFunc.bind(this), this.waitForNewGame.bind(this));
 	this.gameRunner.start();
 };
 
@@ -143,18 +159,11 @@ Runner.prototype.endFunc = function(condition) {
 		this.gameRunner.requestRematch();
 	}.bind(this);
 	this.container.querySelector(".newgame").onclick = function() {
-		location.reload();
-	};
+		this.requestRandomGame();
+	}.bind(this);
 	if (condition == "disconnect") {
 		rematch.setAttribute("disabled", true);
 	}
-};
-
-Runner.prototype.rematchFunc = function() {
-	this.socket.onmessage = function(e) {
-		this.gameRunner.destroy();
-		this.socketOnMessageStartup(e);
-	}.bind(this);
 };
 
 Runner.prototype.display = function(text, fade) {
