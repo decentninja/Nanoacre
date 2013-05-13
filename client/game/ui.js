@@ -2,6 +2,11 @@
 
 var SELECTED_WIDTH = 3;
 
+var BORDER_WIDTH_START = 17.0;
+var BORDER_WIDTH_MID = 10.0;
+var BORDER_BREAK_PONT = 0.1;
+var BORDER_CHANGE_FACTOR = 0.75;
+
 var COOLDOWN_RADIUS = 3;
 var COOLDOWN_WIDTH = 6;
 
@@ -23,6 +28,8 @@ function Ui(canvas_context, config, loadData) {
 	this.ownedUnits = []
 
 	this.particlesystem = new Particlesystem(canvas_context)
+
+	this.borderWidth = 0
 }
 
 Ui.prototype.registerInitialUnits = function(units) {
@@ -36,6 +43,19 @@ Ui.prototype.registerInitialUnits = function(units) {
 
 Ui.prototype.render = function(deltatime, state) {
 	if (this.lastState) {
+		if (this.triedToFireWith) {
+			for (var i = 0; i < this.lastState.units.length; i++) {
+				var unit = this.lastState.units[i]
+				if (unit.id === this.triedToFireWith) {
+					if (!unit.canFire()) {
+						this.setBorder(this.config.colors.bullet, true)
+					}
+					break
+				}
+			}
+			this.triedToFireWith = null
+		}
+
 		this.lastState.units.forEach(function(unit) {
 			for (var i = 0; i < state.units.length; i++) {
 				if (state.units[i].id == unit.id)
@@ -121,12 +141,27 @@ Ui.prototype.render = function(deltatime, state) {
 		}
 	}
 	this.ctx.fill();
+
+	// Animated border
+	this.updateBorder(deltatime)
+
+	// Shooting on cooldown feedback
+	for (var i = 0; i < state.units.length; i++) {
+		if (this.selection === state.units[i].id) {
+			if (!state.units[i].canFire()) {
+				this.setBorder(this.config.colors.bullet, false)
+			} else {
+				this.clearBorder(this.config.colors.bullet)
+			}
+		}
+	}
+	this.drawBorder()
 }
 
 Ui.prototype.renderUnit = function(unit, alive) {
 	var x = unit.position.x * UI_RENDER_FACTOR;
 	var y = unit.position.y * UI_RENDER_FACTOR;
-	var isSelected = this.selection == unit.id
+	var isSelected = this.selection === unit.id
 	if (alive) {
 		this.ctx.fillStyle = this.config.colors.teams[unit.owning_player]
 	} else {
@@ -338,8 +373,51 @@ Ui.prototype.drawDots = function(x, y, n, radiusFromPlayer, dotRadius) {
 	}
 }
 
+Ui.prototype.setBorder = function(borderStyle, force) {
+	if (force || this.borderStyle !== borderStyle || this.borderWidth < BORDER_WIDTH_MID) {
+		this.borderStyle = borderStyle
+		/*if (this.targetBorderWidth === BORDER_WIDTH_MID && Math.abs(this.borderWidth - this.targetBorderWidth) < BORDER_BREAK_PONT) {
+			this.targetBorderWidth = BORDER_WIDTH_MID
+			this.borderWidth = BORDER_WIDTH_START
+		} else {*/
+			this.targetBorderWidth = BORDER_WIDTH_START
+		//}
+	}
+}
+
+Ui.prototype.clearBorder = function(borderStyle) {
+	if (this.borderStyle === borderStyle)
+		this.targetBorderWidth = 0
+}
+
+Ui.prototype.updateBorder = function(deltatime) {
+	if (this.borderStyle) {
+		if (Math.abs(this.targetBorderWidth - this.borderWidth) < BORDER_BREAK_PONT)
+			this.borderWidth = this.targetBorderWidth
+
+		if (this.targetBorderWidth === BORDER_WIDTH_START && this.targetBorderWidth === this.borderWidth)
+			this.targetBorderWidth = BORDER_WIDTH_MID
+
+		if (this.targetBorderWidth === 0 && this.borderWidth === 0) {
+			this.borderStyle = null
+			return
+		}
+		this.borderWidth += BORDER_CHANGE_FACTOR * (this.targetBorderWidth - this.borderWidth)
+	}
+}
+
+Ui.prototype.drawBorder = function() {
+	if (this.borderStyle) {
+		this.ctx.lineWidth = this.borderWidth
+		this.ctx.strokeStyle = this.borderStyle
+		this.ctx.strokeRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
+	}
+}
+
 Ui.prototype.handleMousedown = function(x, y, button, nextFrame) {
 	var type = this.config.buttons[button]
+	if (type === "fire")
+		this.triedToFireWith = this.selection
 	return {
 		time: nextFrame,
 		type: type,

@@ -139,9 +139,7 @@ Logic.prototype.step = function(state, events) {
 
 			case "fire":
 				state.units.forEach(function(u) {
-					if (u.id === ev.who && 
-						u.shooting_cooldown <= (MAX_SHOTS -1) * SHOOTING_COOLDOWN / MAX_SHOTS &&
-						(u.reload_cooldown || !u.shooting_cooldown)) {
+					if (u.id === ev.who && u.canFire()) {
 						var owning_player = u.owning_player;
 						var pos = deepCopy(u.position);
 						u.shooting_cooldown += SHOOTING_COOLDOWN / MAX_SHOTS

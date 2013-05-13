@@ -11,14 +11,7 @@ function State(map) {
 					x: (j + 1/2) * TILE_SIZE,
 					y: (i + 1/2) * TILE_SIZE
 				};
-				this.units.push({
-					id: this.nunits,
-					owning_player: possibleteam,
-					position: position,
-					target: position,
-					shooting_cooldown: 0,
-					reload_cooldown: 0,
-				})
+				this.units.push(new Unit(this.nunits, possibleteam, position))
 				this.nunits++;
 			}
 		}
@@ -33,4 +26,17 @@ State.prototype.getRemainingPlayers = function() {
 		}
 	})
 	return players
+}
+
+function Unit(id, team, position) {
+	this.id = id
+	this.owning_player = team
+	this.position = position
+	this.shooting_cooldown = 0
+	this.reload_cooldown = 0
+}
+
+Unit.prototype.canFire = function() {
+	return this.shooting_cooldown <= (MAX_SHOTS -1) * SHOOTING_COOLDOWN / MAX_SHOTS
+	       && (this.reload_cooldown || !this.shooting_cooldown)
 }
