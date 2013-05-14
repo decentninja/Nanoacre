@@ -20,7 +20,8 @@ var BULLET_LENGTH = 50;
 var BULLET_WIDTH = UI_RENDER_FACTOR * BULLET_RADIUS;
 
 var UNIT_EXPLOSION_PUSH_AWAY_FACTOR = 5;
-var WALL_EXPLOSION_PUSH_AWAY_FACTOR = -0.3;
+var WALL_EXPLOSION_PUSH_AWAY_FACTOR = -2;
+var WALL_EXPLOSION_DIRECTION_FACTOR = -0.1;
 
 /*
 	Creates new particle system
@@ -134,8 +135,8 @@ Ui.prototype.render = function(deltatime, state) {
 
 			// The bullet must have exploded against a wall.
 			var dir = {
-				x: -0.1 * bullet.direction.x,
-				y: -0.1 * bullet.direction.y,
+				x: WALL_EXPLOSION_DIRECTION_FACTOR * bullet.direction.x,
+				y: WALL_EXPLOSION_DIRECTION_FACTOR * bullet.direction.y,
 			};
 			this.particlesystem.explosion(
 				bullet.position.x * UI_RENDER_FACTOR,

@@ -84,8 +84,8 @@ Particlesystem.prototype.add = function(x, y, dx, dy, style, burntime) {
 Particlesystem.prototype.explosion = function(x, y, style, away, pushAwayFactor) {
 	for (var i = 0; i < 100; i++) {
 		var dir = randvector(randrange(0, 3));
-		dir.x += away.x * -0.2;
-		dir.y += away.y * -0.2;
+		dir.x += away.x * pushAwayFactor;
+		dir.y += away.y * pushAwayFactor;
 		this.add(x, y, dir.x, dir.y, style, 500);
 	}
 };
