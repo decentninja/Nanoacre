@@ -122,6 +122,8 @@ Runner.prototype.waitForNewGame = function() {
 
 Runner.prototype.requestGame = function(lobby, players) {
 	var wsServer = GetParams["ws"] || location.host;
+	if (this.socket)
+		this.socket.close()
 	this.socket = new WebSocket("ws://" + wsServer + "/ws?custom=" + lobby + "&players=" + players);
 	this.display("Waiting for another player...", false);
 	this.waitForNewGame();
