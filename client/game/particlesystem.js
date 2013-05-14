@@ -31,7 +31,7 @@ Particle.prototype.update = function(deltatime) {
 Particle.prototype.render = function(ctx) {
 	ctx.fillStyle = this.style;
 	ctx.globalAlpha = Math.abs(this.timeleft / this.burntime);
-	ctx.fillRect(this.x, this.y, 1, 1);
+	ctx.fillRect(this.x - 0.5, this.y - 0.5, 1.5, 1.5);
 };
 
 
@@ -83,9 +83,12 @@ Particlesystem.prototype.add = function(x, y, dx, dy, style, burntime) {
  */
 Particlesystem.prototype.explosion = function(x, y, style, away, pushAwayFactor) {
 	for (var i = 0; i < 100; i++) {
-		var dir = randvector(randrange(0, 3));
+		var dir = randvector(randrange(0, 2));
+		var scatter = randrange(0.5, 1);
 		dir.x += away.x * pushAwayFactor;
 		dir.y += away.y * pushAwayFactor;
+		dir.x *= scatter;
+		dir.y *= scatter;
 		this.add(x, y, dir.x, dir.y, style, 500);
 	}
 };
