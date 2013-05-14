@@ -80,7 +80,6 @@ Runner.prototype.start = function() {
 		}
 		location.href = "?lobby=" + id + "&players=" + players;
 	});
-	this.showNonGameOptions(true);
 
 	var randomGameButton = this.container.querySelector(".randomgame-button");
 	randomGameButton.addEventListener("click", function() {
@@ -197,7 +196,6 @@ Runner.prototype.endFunc = function(condition) {
 	if (condition == "disconnect") {
 		rematch.setAttribute("disabled", true);
 	}
-	this.showNonGameOptions(true);
 };
 
 /*
