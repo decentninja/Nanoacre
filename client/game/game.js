@@ -57,4 +57,5 @@ Game.prototype.getRemainingPlayers = function() {
 };
 
 window.Game = Game;
+
 })();

@@ -251,9 +251,10 @@ Logic.prototype.step = function(state, events, addUIEvent) {
 };
 
 
+/* === Path finding; talks to compiled code. Beware of dragons. === */
+
 /*
 	Pushes data to stack for C++ path finding code
-	Path finding; talks to compiled code. Beware of dragons.
  */
 Logic.prototype.pathfindingComputePointsAndRects = function(points, rects) {
 	var map = this.map;
@@ -291,6 +292,7 @@ Logic.prototype.pathfindingComputePointsAndRects = function(points, rects) {
 	}
 };
 
+// Helper function for pushing a JS array to the C stack
 function pushArrayToStack(obj) {
 	var mem = Runtime.stackAlloc(obj.length * 4);
 	for (var i = 0; i < obj.length; ++i)
