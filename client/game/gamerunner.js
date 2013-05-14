@@ -34,10 +34,6 @@ GameRunner.prototype.start = function() {
 	this.loadData.Field.width = this.loadData.Field.Tiles[0].length;
 	this.loadData.Field.height = this.loadData.Field.Tiles.length;
 
-	this.resizeHandler = this.handleResize.bind(this);
-	this.handleResize();
-	window.addEventListener("resize", this.resizeHandler);
-
 	this.eventqueue = [];
 	this.playerId = this.loadData.Id;
 	this.ui = new Ui(this.canvas, this.config, this.loadData);
@@ -48,6 +44,9 @@ GameRunner.prototype.start = function() {
 		this.network = new MockNetwork();
 
 	this.ui.setupCanvas();
+	this.resizeHandler = this.handleResize.bind(this);
+	window.addEventListener("resize", this.resizeHandler);
+	this.resizeHandler();
 
 	this.network.takeOverSocket();
 	this.network.ready(this.startFunc.bind(this), this.endFunc.bind(this), this.rematchCallback);
