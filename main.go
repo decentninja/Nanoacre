@@ -7,6 +7,9 @@ import (
 	"os"
 )
 
+// Start everything
+// Optional argument to force a given field
+// ex: go run main.go .sample1
 func main() {
 	if len(os.Args) > 1 {
 		server.SetupSocketServer(os.Args[1])

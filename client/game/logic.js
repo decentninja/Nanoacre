@@ -5,27 +5,55 @@ var BULLET_RADIUS = 90;
 var SHOOTING_COOLDOWN = 3 * 60;
 var MAX_SHOTS = 3;
 var RELOAD_COOLDOWN = SHOOTING_COOLDOWN;
+var BULLET_SPEED = 175;
 
 ;(function() {
 "use strict";
 
-var BULLET_SPEED = 175;
-
 var PLAYER_SPEED = 50;
 
+/*
+	Sets up pathfinding
+ */
 window.Logic = function(map) {
 	this.map = map;
 	this.setupPathfinding();
 };
 
+/*
+	Destructor. The pathfinding stuff will leak memory if not called.
+ */
 Logic.prototype.destroy = function() {
 	this.clearPathfinding();
 };
 
+/*
+	Create the initial state for the map
+ */
 Logic.prototype.initialState = function() {
-	return new State(this.map)
-}
+	return new State(this.map);
+};
 
+/*
+	Run a function for each wall tile. Returns true if any invocation returned
+	true, else false.
+ */
+Logic.prototype.eachWallTile = function(callback) {
+	var map = this.map, ph = map.height, pw = map.width;
+	for (var i = 0; i < ph; ++i) {
+		for (var j = 0; j < pw; ++j) {
+			if (map.Tiles[i][j] === 1) {
+				if (callback(j, i))
+					return true;
+			}
+		}
+	}
+	return false;
+};
+
+/*
+	Moves waypoint if inside wall
+ */
 Logic.prototype.moveOutFromWalls = function(pos) {
 	pos = deepCopy(pos);
 	function min2(a, b) {
@@ -65,31 +93,21 @@ Logic.prototype.moveOutFromWalls = function(pos) {
 
 	// The above handles 99% of all cases, but not corners. The logic for that
 	// is awful, so just hack around it.
-	if (!this.freespace(pos, PLAYER_RADIUS))
-		pos = {x: (px+1/2) * TILE_SIZE, y: (py+1/2) * TILE_SIZE};
+	this.eachWallTile(function(x, y) {
+		if (y * TILE_SIZE - PLAYER_RADIUS < pos.y && (y + 1) * TILE_SIZE + PLAYER_RADIUS > pos.y &&
+			x * TILE_SIZE - PLAYER_RADIUS < pos.x && (x + 1) * TILE_SIZE + PLAYER_RADIUS > pos.x)
+		{
+			pos = {x: (px+1/2) * TILE_SIZE, y: (py+1/2) * TILE_SIZE};
+			return true;
+		}
+	});
 
 	return pos;
-}
-
-// Check whether a position is free from wall collisions, in the most
-// inefficient possible way.
-Logic.prototype.freespace = function(pos, radius) {
-	var map = this.map;
-	var ph = map.Tiles.length, pw = map.Tiles[0].length;
-	for (var i = 0; i < ph; ++i) {
-		for (var j = 0; j < pw; ++j) {
-			if (map.Tiles[i][j] == 1) {
-				if (i * TILE_SIZE - radius < pos.y && (i + 1) * TILE_SIZE + radius > pos.y &&
-					j * TILE_SIZE - radius < pos.x && (j + 1) * TILE_SIZE + radius > pos.x)
-				{
-					return false;
-				}
-			}
-		}
-	}
-	return true;
 };
 
+/*
+	Update unit position
+ */
 Logic.prototype.moveUnit = function(u) {
 	var dirs = ['x', 'y'];
 	if (!u.path)
@@ -122,11 +140,15 @@ Logic.prototype.moveUnit = function(u) {
 	u.position = npos;
 };
 
-Logic.prototype.step = function(state, events) {
+/*
+	Move the game state forward one frame, handling things like unit/bullet
+	movements, shooting, collisions, etc.
+ */
+Logic.prototype.step = function(state, events, addUIEvent) {
 	var map = this.map, self = this;
 	state = deepCopy(state);
 	events.forEach(function(ev) {
-		switch(ev.type) {
+		switch (ev.type) {
 			case "move":
 				state.units.forEach(function(u) {
 					if (u.id === ev.who) {
@@ -139,29 +161,26 @@ Logic.prototype.step = function(state, events) {
 
 			case "fire":
 				state.units.forEach(function(u) {
-					if (u.id === ev.who && 
-						u.shooting_cooldown <= (MAX_SHOTS -1) * SHOOTING_COOLDOWN / MAX_SHOTS &&
-						(u.reload_cooldown || !u.shooting_cooldown)) {
+					if (u.id === ev.who && u.canFire()) {
 						var owning_player = u.owning_player;
 						var pos = deepCopy(u.position);
-						u.shooting_cooldown += SHOOTING_COOLDOWN / MAX_SHOTS
-						u.reload_cooldown = RELOAD_COOLDOWN
-						if(u.shooting_cooldown >= SHOOTING_COOLDOWN) {
-							u.reload_cooldown = 0
+						u.shooting_cooldown += SHOOTING_COOLDOWN / MAX_SHOTS;
+						u.reload_cooldown = RELOAD_COOLDOWN;
+						if (u.shooting_cooldown >= SHOOTING_COOLDOWN) {
+							u.reload_cooldown = 0;
 						}
 						var x = ev.towards.x - pos.x;
 						var y = ev.towards.y - pos.y;
-						var l = Math.sqrt(x*x + y*y)
+						var dist = Math.sqrt(x*x + y*y);
 						var dir = {
-							x: x / l,
-							y: y / l,
-						}
-						pos.x += dir.x * TILE_SIZE
-						pos.y += dir.y * TILE_SIZE
+							x: x / dist,
+							y: y / dist,
+						};
 						state.nbullets++;
 						state.bullets.push({
 							id: state.nbullets,
 							owning_player: owning_player,
+							startPosition: pos,
 							position: pos,
 							direction: dir
 						});
@@ -171,40 +190,72 @@ Logic.prototype.step = function(state, events) {
 		}
 	});
 	state.bullets = state.bullets.filter(function(b) {
-		var die = false;
 		b.position.x += b.direction.x * BULLET_SPEED;
 		b.position.y += b.direction.y * BULLET_SPEED;
+
+		// Player collisions
+		var die = false;
 		state.units = state.units.filter(function(u) {
 			var distanceSq = dist2(u.position, b.position);
-			if((b.owning_player != u.owning_player) && distanceSq <= Math.pow(PLAYER_RADIUS + BULLET_RADIUS, 2)) {
+			if (!die && b.owning_player != u.owning_player &&
+					distanceSq <= sq(PLAYER_RADIUS + BULLET_RADIUS)) {
+				addUIEvent({
+					type: "playerBulletCollision",
+					bullet: deepCopy(b),
+					unit: deepCopy(u)
+				});
 				die = true;
 				return false;
-			} else {
+			}
+			return true;
+		});
+		if (die)
+			return false;
+
+		// Outside map
+		if (b.position.x < -TILE_SIZE ||
+			b.position.y < -TILE_SIZE ||
+			b.position.x > (map.width + 1) * TILE_SIZE ||
+			b.position.y > (map.height + 1) * TILE_SIZE)
+		{
+			addUIEvent({
+				type: "bulletOutOfBounds",
+				bullet: deepCopy(b)
+			});
+			return false;
+		}
+
+		// Wall collisions
+		var pos = b.position;
+		return !this.eachWallTile(function(x, y) {
+			if (y * TILE_SIZE < pos.y && (y + 1) * TILE_SIZE > pos.y &&
+				x * TILE_SIZE < pos.x && (x + 1) * TILE_SIZE > pos.x)
+			{
+				addUIEvent({
+					type: "wallBulletCollision",
+					bullet: deepCopy(b),
+					wall: {x: x, y: y}
+				});
 				return true;
 			}
 		});
-		// Outside map
-		if(b.position.x < -TILE_SIZE || b.position.x > (map.width+1)* TILE_SIZE || b.position.y < -TILE_SIZE || b.position.y > (1+map.height)*TILE_SIZE) {
-			die = true;
-		}
-		if(!self.freespace(b.position, 0)) {
-			die = true
-		}
-		return !die;
-	});
+	}, this);
 	state.units.forEach(this.moveUnit.bind(this));
 	state.units.forEach(function(u) {
-		if(u.shooting_cooldown && u.reload_cooldown == 0) 
+		if (u.shooting_cooldown && u.reload_cooldown === 0)
 			--u.shooting_cooldown;
-		if(u.reload_cooldown) 
+		if (u.reload_cooldown)
 			--u.reload_cooldown;
 	});
 	return state;
-}
+};
 
 
-// Path finding; talks to compiled code. Beware of dragons.
+/* === Path finding; talks to compiled code. Beware of dragons. === */
 
+/*
+	Pushes data to stack for C++ path finding code
+ */
 Logic.prototype.pathfindingComputePointsAndRects = function(points, rects) {
 	var map = this.map;
 	var ph = map.Tiles.length, pw = map.Tiles[0].length;
@@ -241,6 +292,7 @@ Logic.prototype.pathfindingComputePointsAndRects = function(points, rects) {
 	}
 };
 
+// Helper function for pushing a JS array to the C stack
 function pushArrayToStack(obj) {
 	var mem = Runtime.stackAlloc(obj.length * 4);
 	for (var i = 0; i < obj.length; ++i)
@@ -248,6 +300,9 @@ function pushArrayToStack(obj) {
 	return mem;
 }
 
+/*
+	The shit
+ */
 Logic.prototype.pathfind = function(from, to) {
 	var startStack = Runtime.stackSave();
 	try {
@@ -279,6 +334,9 @@ Logic.prototype.pathfind = function(from, to) {
 	}
 };
 
+/*
+	Runs initial pathfinding code
+ */
 Logic.prototype.setupPathfinding = function() {
 	var points = [], rects = [];
 	this.pathfindingComputePointsAndRects(points, rects);
@@ -308,6 +366,9 @@ Logic.prototype.setupPathfinding = function() {
 	this.ptrMap = ptrMap;
 };
 
+/*
+	C++ cleanup
+ */
 Logic.prototype.clearPathfinding = function() {
 	Module.ccall('clear_pathfinding',
 		'number',
