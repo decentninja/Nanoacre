@@ -20,8 +20,8 @@ var BULLET_LENGTH = 50;
 var BULLET_WIDTH = UI_RENDER_FACTOR * BULLET_RADIUS;
 
 var UNIT_EXPLOSION_PUSH_AWAY_FACTOR = 4;
-var WALL_EXPLOSION_PUSH_AWAY_FACTOR = 2;
-var WALL_EXPLOSION_DIRECTION_FACTOR = -1;
+var WALL_EXPLOSION_PUSH_AWAY_FACTOR = -1;
+var WALL_EXPLOSION_DIRECTION_FACTOR = 0.1;
 
 /*
 	Creates new particle system
@@ -109,16 +109,32 @@ Ui.prototype.render = function(deltatime, state, uiEvents) {
 			this.deadBullets[bullet.id] = true;
 		}
 		else if (ev.type === "wallBulletCollision") {
-			var bullet = ev.bullet;
+			var bullet = ev.bullet, w = ev.wall;
 			if (this.deadBullets[bullet.id])
 				return;
 			this.deadBullets[bullet.id] = true;
 
-			// TODO: Make this direction a reflection against ev.wall.
+			// Explode in the same direction as the bullet except reflected
+			// against the wall. (This logic doesn't work for shooting against
+			// concave corners, but whatever.)
 			var dir = {
 				x: WALL_EXPLOSION_DIRECTION_FACTOR * bullet.direction.x,
 				y: WALL_EXPLOSION_DIRECTION_FACTOR * bullet.direction.y,
 			};
+			var T = this.map.Tiles;
+			var bx = bullet.position.x, by = bullet.position.y;
+			var dx = bullet.direction.x, dy = bullet.direction.y;
+			var sx = 0, sy = 0, ex = this.map.width - 1, ey = this.map.height - 1;
+			if (((w.x === sx || T[w.y][w.x - 1] !== 1) && dx > 0 && bx < TILE_SIZE * w.x + BULLET_SPEED) ||
+			    ((w.x === ex || T[w.y][w.x + 1] !== 1) && dx < 0 && bx > TILE_SIZE * (w.x + 1) - BULLET_SPEED))
+			{
+				dir.x *= -1;
+			}
+			if (((w.y === sy || T[w.y - 1][w.x] !== 1) && dy > 0 && by < TILE_SIZE * w.y + BULLET_SPEED) ||
+			    ((w.y === ey || T[w.y + 1][w.x] !== 1) && dy < 0 && by > TILE_SIZE * (w.y + 1) - BULLET_SPEED))
+			{
+				dir.y *= -1;
+			}
 			this.particlesystem.explosion(
 				bullet.position.x * UI_RENDER_FACTOR,
 				bullet.position.y * UI_RENDER_FACTOR,
