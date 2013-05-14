@@ -2,6 +2,7 @@
 <html>
 	<head>
 		<meta charset="utf-8">
+		<title>Nanoacre</title>
 		<link href='http://fonts.googleapis.com/css?family=Ubuntu+Mono|Ubuntu:400,700' rel='stylesheet' type='text/css'>
 		<link rel="stylesheet" href="style.css">
 		<link rel="icon" type="image/png" href="favicon.png" />
@@ -10,17 +11,22 @@
 		<div class="content">
 			<h1>Nanoacre</h1>
 			<div class="fullscreen-container">
-				<div class="game-container">
-					<h2 class="flashtext">Loading...</h2>
+				<h2 class="flashtext"></h2>
+				<div class="lobby-container">
+					<div class="lobby-line">
+						<div class="explain">
+							<img src="explain.png" alt="1, 2, 3 to select units. Left click to shoot. Right click to move.">
+						</div>
+						<button class="randomgame-button">Random Game</button>
+						<button class="create-lobby">Create Custom Lobby</button>
+					</div>
+				</div>
+				<div class="game-container screen-hidden">
 					<canvas class="canvas" width="1000" height="500">Please upgrade to a modern web browser.</canvas>
 				</div>
 			</div>
 			<div class="settings">
 				<input type="button" class="fullscreen-button" value="Fullscreen">
-				<input type="button" class="create-lobby" value="Create Custom Lobby">
-			</div>
-			<div class="help">
-				<img src="explain.png">
 			</div>
 		</div>
 		<script src="game/util.js"></script>
