@@ -2,7 +2,7 @@
 "use strict";
 
 /*
-	The begining of time
+	The beginning of time
 	Constants for color and buttons
 	Query DOM
  */
@@ -21,6 +21,7 @@ function initialize() {
 			shadow: "#000000",
 			bullet: "#C82257",
 			selected: "#208BB5",
+			wallExplosion: "#333333",
 			text: "#208BB5",
 			map: "#434242",
 			cooldown: "#C82257",

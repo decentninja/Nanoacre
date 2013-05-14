@@ -139,7 +139,7 @@ Ui.prototype.render = function(deltatime, state) {
 			this.particlesystem.explosion(
 				bullet.position.x * UI_RENDER_FACTOR,
 				bullet.position.y * UI_RENDER_FACTOR,
-				'#333',
+				this.config.colors.wallExplosion,
 				dir,
 				WALL_EXPLOSION_PUSH_AWAY_FACTOR
 			);
