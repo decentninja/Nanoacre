@@ -59,8 +59,14 @@ GameRunner.prototype.start = function() {
 GameRunner.prototype.handleResize = function() {
 	var canvas = this.canvas;
 	var actualContainer = document.querySelector(".fullscreen-container");
-	var widthScale = actualContainer.offsetWidth  / canvas.width;
+	var widthScale = actualContainer.offsetWidth / canvas.width;
 	var heightScale = actualContainer.offsetHeight / canvas.height;
+
+	// Chrome apparently doesn't handle "height: 100%; width: auto;" correctly
+	// on resize - trigger reflow on something else to work around it.
+	canvas.style.width = canvas.style.height = "0";
+	canvas.offsetWidth;
+
 	if (widthScale < 1 && heightScale < 1) {
 		var scaleWidth = (widthScale < heightScale);
 		canvas.style.width = (scaleWidth ? "100%" : "");
