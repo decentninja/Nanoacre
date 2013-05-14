@@ -227,10 +227,6 @@ Runner.prototype.display = function(text, fade) {
 	}
 };
 
-Runner.prototype.showNonGameOptions = function(show) {
-	this.customGameButton.style.display = (show ? "" : "none");
-};
-
 /*
 	Ctrl+A is annoying
  */
