@@ -13,7 +13,6 @@ var BULLET_SPEED = 175;
 var PLAYER_SPEED = 50;
 
 /*
-	Creates initial state
 	Sets up pathfinding
  */
 window.Logic = function(map) {
@@ -22,17 +21,34 @@ window.Logic = function(map) {
 };
 
 /*
-	Clearing up C++ stuff in pathfinding
+	Destructor. The pathfinding stuff will leak memory if not called.
  */
 Logic.prototype.destroy = function() {
 	this.clearPathfinding();
 };
 
 /*
-	Returns initial state
+	Create the initial state for the map
  */
 Logic.prototype.initialState = function() {
 	return new State(this.map);
+};
+
+/*
+	Run a function for each wall tile. Returns true if any invocation returned
+	true, else false.
+ */
+Logic.prototype.eachWallTile = function(callback) {
+	var map = this.map, ph = map.height, pw = map.width;
+	for (var i = 0; i < ph; ++i) {
+		for (var j = 0; j < pw; ++j) {
+			if (map.Tiles[i][j] === 1) {
+				if (callback(j, i))
+					return true;
+			}
+		}
+	}
+	return false;
 };
 
 /*
@@ -77,29 +93,16 @@ Logic.prototype.moveOutFromWalls = function(pos) {
 
 	// The above handles 99% of all cases, but not corners. The logic for that
 	// is awful, so just hack around it.
-	if (!this.freespace(pos, PLAYER_RADIUS))
-		pos = {x: (px+1/2) * TILE_SIZE, y: (py+1/2) * TILE_SIZE};
+	this.eachWallTile(function(x, y) {
+		if (y * TILE_SIZE - PLAYER_RADIUS < pos.y && (y + 1) * TILE_SIZE + PLAYER_RADIUS > pos.y &&
+			x * TILE_SIZE - PLAYER_RADIUS < pos.x && (x + 1) * TILE_SIZE + PLAYER_RADIUS > pos.x)
+		{
+			pos = {x: (px+1/2) * TILE_SIZE, y: (py+1/2) * TILE_SIZE};
+			return true;
+		}
+	});
 
 	return pos;
-};
-
-// Check whether a position is free from wall collisions, in the most
-// inefficient possible way.
-Logic.prototype.freespace = function(pos, radius) {
-	var map = this.map;
-	var ph = map.Tiles.length, pw = map.Tiles[0].length;
-	for (var i = 0; i < ph; ++i) {
-		for (var j = 0; j < pw; ++j) {
-			if (map.Tiles[i][j] == 1) {
-				if (i * TILE_SIZE - radius < pos.y && (i + 1) * TILE_SIZE + radius > pos.y &&
-					j * TILE_SIZE - radius < pos.x && (j + 1) * TILE_SIZE + radius > pos.x)
-				{
-					return false;
-				}
-			}
-		}
-	}
-	return true;
 };
 
 /*
@@ -138,12 +141,10 @@ Logic.prototype.moveUnit = function(u) {
 };
 
 /*
-	Updates everything
-	Handles events for fire and move
-	Moves bullets
-	Updates cooldowns
+	Move the game state forward one frame, handling things like unit/bullet
+	movements, shooting, collisions, etc.
  */
-Logic.prototype.step = function(state, events) {
+Logic.prototype.step = function(state, events, addUIEvent) {
 	var map = this.map, self = this;
 	state = deepCopy(state);
 	events.forEach(function(ev) {
@@ -189,30 +190,56 @@ Logic.prototype.step = function(state, events) {
 		}
 	});
 	state.bullets = state.bullets.filter(function(b) {
-		var die = false;
 		b.position.x += b.direction.x * BULLET_SPEED;
 		b.position.y += b.direction.y * BULLET_SPEED;
+
+		// Player collisions
+		var die = false;
 		state.units = state.units.filter(function(u) {
 			var distanceSq = dist2(u.position, b.position);
 			if (!die && b.owning_player != u.owning_player &&
 					distanceSq <= sq(PLAYER_RADIUS + BULLET_RADIUS)) {
+				addUIEvent({
+					type: "playerBulletCollision",
+					bullet: deepCopy(b),
+					unit: deepCopy(u)
+				});
 				die = true;
 				return false;
 			}
 			return true;
 		});
+		if (die)
+			return false;
+
 		// Outside map
 		if (b.position.x < -TILE_SIZE ||
 			b.position.y < -TILE_SIZE ||
 			b.position.x > (map.width + 1) * TILE_SIZE ||
-			b.position.y > (map.height + 1) * TILE_SIZE) {
-			die = true;
+			b.position.y > (map.height + 1) * TILE_SIZE)
+		{
+			addUIEvent({
+				type: "bulletOutOfBounds",
+				bullet: deepCopy(b)
+			});
+			return false;
 		}
-		if (!self.freespace(b.position, 0)) {
-			die = true;
-		}
-		return !die;
-	});
+
+		// Wall collisions
+		var pos = b.position;
+		return !this.eachWallTile(function(x, y) {
+			if (y * TILE_SIZE < pos.y && (y + 1) * TILE_SIZE > pos.y &&
+				x * TILE_SIZE < pos.x && (x + 1) * TILE_SIZE > pos.x)
+			{
+				addUIEvent({
+					type: "wallBulletCollision",
+					bullet: deepCopy(b),
+					wall: {x: x, y: y}
+				});
+				return true;
+			}
+		});
+	}, this);
 	state.units.forEach(this.moveUnit.bind(this));
 	state.units.forEach(function(u) {
 		if (u.shooting_cooldown && u.reload_cooldown === 0)

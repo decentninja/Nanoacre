@@ -34,7 +34,7 @@ function Ui(canvas, config, loadData) {
 
 	this.deadUnits = [];
 	this.ownedUnits = [];
-	this.explodedBullets = [];
+	this.deadBullets = [];
 
 	this.particlesystem = new Particlesystem(this.ctx);
 
@@ -70,7 +70,7 @@ Ui.prototype.registerInitialUnits = function(units) {
 	Renders bullets, map
 	Calls units, particles and shadows
  */
-Ui.prototype.render = function(deltatime, state) {
+Ui.prototype.render = function(deltatime, state, uiEvents) {
 	var alsoDrawBullets = [];
 	if (this.lastState) {
 		if (this.triedToFireWith !== null) {
@@ -85,55 +85,36 @@ Ui.prototype.render = function(deltatime, state) {
 			}
 			this.triedToFireWith = null;
 		}
+	}
+	this.lastState = state;
 
-		// Find newly dead units.
-		this.lastState.units.forEach(function(unit) {
-			if (state.units.some(function(u) { return u.id === unit.id; }))
+	uiEvents.forEach(function(ev) {
+		if (ev.type === "playerBulletCollision") {
+			var unit = ev.unit, bullet = ev.bullet;
+			this.deadBullets[bullet.id] = true;
+			if (this.deadUnits[unit.id])
 				return;
+			this.deadUnits[unit.id] = unit;
 
-			// Guess at which bullet is likely to be responsible, because we
-			// currently don't record that anywhere.
-			var killingDirection = {x: 0, y: 0}, killingBullet = null;
-			var diff = null;
-			this.lastState.bullets.forEach(function(bullet) {
-				var newdiff = Math.abs(bullet.position.x - unit.position.x + bullet.position.y - bullet.position.y);
-				if (newdiff < diff || diff === null) {
-					killingDirection = bullet.direction;
-					killingBullet = bullet.id;
-					diff = newdiff;
-				}
-			});
 			this.particlesystem.explosion(
 				unit.position.x * UI_RENDER_FACTOR, 
 				unit.position.y * UI_RENDER_FACTOR, 
 				this.config.colors.teams[unit.owning_player],
-				killingDirection,
+				bullet.direction,
 				UNIT_EXPLOSION_PUSH_AWAY_FACTOR
 			);
-
-			if (killingBullet)
-				this.explodedBullets[killingBullet] = true;
-
-			this.deadUnits.push(deepCopy(unit));
-		}, this);
-
-		state.bullets.forEach(function(b) {
-			this.explodedBullets[b.id] = false;
-		}, this);
-
-		this.lastState.bullets.forEach(function(bullet) {
-			if (state.bullets.some(function(b) { return b.id === bullet.id; }))
+		}
+		else if (ev.type === "bulletOutOfBounds") {
+			var bullet = ev.bullet;
+			this.deadBullets[bullet.id] = true;
+		}
+		else if (ev.type === "wallBulletCollision") {
+			var bullet = ev.bullet;
+			if (this.deadBullets[bullet.id])
 				return;
-			if (this.explodedBullets[bullet.id])
-				return;
-			if (bullet.position.x < 0 ||
-				bullet.position.y < 0 ||
-				bullet.position.x > this.map.width * TILE_SIZE ||
-				bullet.position.y > this.map.height * TILE_SIZE) {
-				return;
-			}
+			this.deadBullets[bullet.id] = true;
 
-			// The bullet must have exploded against a wall.
+			// TODO: Make this direction a reflection against ev.wall.
 			var dir = {
 				x: WALL_EXPLOSION_DIRECTION_FACTOR * bullet.direction.x,
 				y: WALL_EXPLOSION_DIRECTION_FACTOR * bullet.direction.y,
@@ -148,32 +129,26 @@ Ui.prototype.render = function(deltatime, state) {
 
 			// Add a continuation of the bullet to the list to be drawn, so that
 			// it looks like it totally hits the wall.
-			var fakeBulletContinuation = deepCopy(bullet);
-			fakeBulletContinuation.position.x += BULLET_SPEED * bullet.direction.x;
-			fakeBulletContinuation.position.y += BULLET_SPEED * bullet.direction.y;
-			alsoDrawBullets.push(fakeBulletContinuation);
-		}, this);
-
-		for (var i = 0; i < this.deadUnits.length; i++) {
-			for (var j = 0; j < state.units.length; j++) {
-				if (state.units[j].id === this.deadUnits[i].id) {
-					this.deadUnits.splice(i, 1);
-					i--;
-					console.log("unit " + state.units[j].id + " used to be dead.");
-					break;
-				}
-			}
+			alsoDrawBullets.push(bullet);
 		}
-	}
-	this.lastState = state;
+	}, this);
+
+	state.units.forEach(function(u) {
+		this.deadUnits[u.id] = null;
+	}, this);
+	state.bullets.forEach(function(b) {
+		this.deadBullets[b.id] = false;
+	}, this);
+
 
 	// Clear
 	this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 
 	// Deadlings
-	for (var i = 0; i < this.deadUnits.length; i++) {
-		this.renderUnit(this.deadUnits[i], false);
-	}
+	this.deadUnits.forEach(function(maybeUnit) {
+		if (maybeUnit)
+			this.renderUnit(maybeUnit, false);
+	}, this);
 
 	// Units
 	for (var i = 0; i < state.units.length; i++) {

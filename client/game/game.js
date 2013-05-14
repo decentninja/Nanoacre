@@ -37,7 +37,9 @@ Game.prototype.step = function(deltatime, eventqueue) {
 		this.timeBehind -= TIME_STEP;
 		this.timeline.step();
 	}
-	this.ui.render(deltatime, this.timeline.getCurrentState());
+	var state = this.timeline.getCurrentState();
+	var uiEvents = this.timeline.fetchUIEvents();
+	this.ui.render(deltatime, state, uiEvents);
 };
 
 /*

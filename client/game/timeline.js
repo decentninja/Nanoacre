@@ -11,6 +11,7 @@ function Timeline(map) {
 	this.map = map;
 	this.logic = new Logic(map);
 	this.events = [];
+	this.uiEvents = [];
 	this.states = new Array(BUFFER_SIZE);
 	this.states[0] = this.logic.initialState();
 }
@@ -27,15 +28,21 @@ Timeline.prototype.destroy = function() {
  */
 Timeline.prototype.step = function() {
 	this._progress(this.curTime);
-	++this.curTime;
+	this.curTime++;
 };
 
 /*
-	Simulates one step
+	Simulates one step, prevT -> prevT + 1
  */
 Timeline.prototype._progress = function(prevT) {
-	var newState = this.logic.step(this.states[prevT & MASK], this.events[prevT + 1] || []);
-	this.states[(prevT + 1) & MASK] = newState;
+	var addUIEvent = function(ev) {
+		ev.time = prevT + 1;
+		this.uiEvents.push(ev);
+	}.bind(this);
+	this.states[(prevT + 1) & MASK] = this.logic.step(
+		this.states[prevT & MASK],
+		this.events[prevT + 1] || [],
+		addUIEvent);
 };
 
 /*
@@ -61,12 +68,35 @@ Timeline.prototype.insert = function(event) {
 	if (this.events[time].length > 1)
 		this.events[time].sort(deepArbitraryCompare);
 
+	while (this.uiEvents.length > 0 &&
+			this.uiEvents[this.uiEvents.length-1].time >= time) {
+		this.uiEvents.pop();
+	}
+
 	if (time <= this.curTime) {
 		for (var t = time; t <= this.curTime; ++t)
 			this._progress(t-1);
 	}
 };
 
+/*
+   Get and clear the current queue of UI events. Note that due to rewinds,
+   events will often occur several times.
+ */
+Timeline.prototype.fetchUIEvents = function() {
+	var ret = this.uiEvents;
+	if (debug) {
+		// Duplicated events should be no-ops, so in debug mode we force that
+		// to happen to make breakage more obvious.
+		ret = ret.concat(ret);
+	}
+	this.uiEvents = [];
+	return ret;
+};
+
+/*
+   Get current state
+ */
 Timeline.prototype.getCurrentState = function() {
 	return this.states[this.curTime & MASK];
 };
