@@ -19,6 +19,9 @@ var UI_RENDER_FACTOR = TILE_RENDER_SIZE / TILE_SIZE;
 var BULLET_LENGTH = 50;
 var BULLET_WIDTH = UI_RENDER_FACTOR * BULLET_RADIUS;
 
+var UNIT_EXPLOSION_PUSH_AWAY_FACTOR = 5;
+var WALL_EXPLOSION_PUSH_AWAY_FACTOR = -0.3;
+
 /*
 	Creates new particle system
  */
@@ -30,6 +33,7 @@ function Ui(canvas, config, loadData) {
 
 	this.deadUnits = [];
 	this.ownedUnits = [];
+	this.explodedBullets = [];
 
 	this.particlesystem = new Particlesystem(this.ctx);
 
@@ -80,17 +84,20 @@ Ui.prototype.render = function(deltatime, state) {
 			this.triedToFireWith = null;
 		}
 
+		// Find newly dead units.
 		this.lastState.units.forEach(function(unit) {
-			for (var i = 0; i < state.units.length; i++) {
-				if (state.units[i].id === unit.id)
-					return;
-			}
-			var killingdirection = {x: 0, y: 0};
+			if (state.units.some(function(u) { return u.id === unit.id; }))
+				return;
+
+			// Guess at which bullet is likely to be responsible, because we
+			// currently don't record that anywhere.
+			var killingDirection = {x: 0, y: 0}, killingBullet = null;
 			var diff = null;
-			this.lastState.bullets.forEach(function(bullet) {	// XXX Hack killing bullet
+			this.lastState.bullets.forEach(function(bullet) {
 				var newdiff = Math.abs(bullet.position.x - unit.position.x + bullet.position.y - bullet.position.y);
 				if (newdiff < diff || diff === null) {
-					killingdirection = bullet.direction;
+					killingDirection = bullet.direction;
+					killingBullet = bullet.id;
 					diff = newdiff;
 				}
 			});
@@ -98,9 +105,44 @@ Ui.prototype.render = function(deltatime, state) {
 				unit.position.x * UI_RENDER_FACTOR, 
 				unit.position.y * UI_RENDER_FACTOR, 
 				this.config.colors.teams[unit.owning_player],
-				killingdirection
+				killingDirection,
+				UNIT_EXPLOSION_PUSH_AWAY_FACTOR
 			);
+
+			if (killingBullet)
+				this.explodedBullets[killingBullet] = true;
+
 			this.deadUnits.push(deepCopy(unit));
+		}, this);
+
+		state.bullets.forEach(function(b) {
+			this.explodedBullets[b.id] = false;
+		}, this);
+
+		this.lastState.bullets.forEach(function(bullet) {
+			if (state.bullets.some(function(b) { return b.id === bullet.id; }))
+				return;
+			if (this.explodedBullets[bullet.id])
+				return;
+			if (bullet.position.x < 0 ||
+				bullet.position.y < 0 ||
+				bullet.position.x > this.map.width * TILE_SIZE ||
+				bullet.position.y > this.map.height * TILE_SIZE) {
+				return;
+			}
+
+			// The bullet must have exploded against a wall.
+			var dir = {
+				x: -0.1 * bullet.direction.x,
+				y: -0.1 * bullet.direction.y,
+			};
+			this.particlesystem.explosion(
+				bullet.position.x * UI_RENDER_FACTOR,
+				bullet.position.y * UI_RENDER_FACTOR,
+				'#333',
+				dir,
+				WALL_EXPLOSION_PUSH_AWAY_FACTOR
+			);
 		}, this);
 
 		for (var i = 0; i < this.deadUnits.length; i++) {
