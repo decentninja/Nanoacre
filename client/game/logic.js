@@ -5,11 +5,10 @@ var BULLET_RADIUS = 90;
 var SHOOTING_COOLDOWN = 3 * 60;
 var MAX_SHOTS = 3;
 var RELOAD_COOLDOWN = SHOOTING_COOLDOWN;
+var BULLET_SPEED = 175;
 
 ;(function() {
 "use strict";
-
-var BULLET_SPEED = 175;
 
 var PLAYER_SPEED = 50;
 

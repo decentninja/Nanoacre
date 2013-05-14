@@ -70,6 +70,7 @@ Ui.prototype.registerInitialUnits = function(units) {
 	Calls units, particles and shadows
  */
 Ui.prototype.render = function(deltatime, state) {
+	var alsoDrawBullets = [];
 	if (this.lastState) {
 		if (this.triedToFireWith !== null) {
 			for (var i = 0; i < this.lastState.units.length; i++) {
@@ -143,6 +144,13 @@ Ui.prototype.render = function(deltatime, state) {
 				dir,
 				WALL_EXPLOSION_PUSH_AWAY_FACTOR
 			);
+
+			// Add a continuation of the bullet to the list to be drawn, so that
+			// it looks like it totally hits the wall.
+			var fakeBulletContinuation = deepCopy(bullet);
+			fakeBulletContinuation.position.x += BULLET_SPEED * bullet.direction.x;
+			fakeBulletContinuation.position.y += BULLET_SPEED * bullet.direction.y;
+			alsoDrawBullets.push(fakeBulletContinuation);
 		}, this);
 
 		for (var i = 0; i < this.deadUnits.length; i++) {
@@ -172,19 +180,7 @@ Ui.prototype.render = function(deltatime, state) {
 	}
 
 	// Bullets
-	this.ctx.strokeStyle = this.config.colors.bullet;
-	this.ctx.lineWidth = BULLET_WIDTH;
-	for (var i = 0; i < state.bullets.length; i++) {
-		var bullet = state.bullets[i];
-		this.ctx.beginPath();
-		var x = bullet.position.x * UI_RENDER_FACTOR;
-		var y = bullet.position.y * UI_RENDER_FACTOR;
-		this.ctx.moveTo(x, y);
-		this.ctx.lineTo(
-			x - BULLET_LENGTH * bullet.direction.x,
-			y - BULLET_LENGTH * bullet.direction.y);
-		this.ctx.stroke();
-	}
+	this.renderBullets(state.bullets.concat(alsoDrawBullets));
 
 	// Particles
 	this.particlesystem.update(deltatime);
@@ -276,6 +272,24 @@ Ui.prototype.precomputeDots = function(maxN) {
 			this.dots[i][j] = [Math.cos(firstAngle + j * DOT_DISTANCE), Math.sin(firstAngle + j * DOT_DISTANCE)];
 		}
 	}
+};
+
+/*
+   Draw an array of bullets to the canvas
+ */
+Ui.prototype.renderBullets = function(bullets) {
+	this.ctx.strokeStyle = this.config.colors.bullet;
+	this.ctx.lineWidth = BULLET_WIDTH;
+	bullets.forEach(function(bullet) {
+		this.ctx.beginPath();
+		var x = bullet.position.x * UI_RENDER_FACTOR;
+		var y = bullet.position.y * UI_RENDER_FACTOR;
+		this.ctx.moveTo(x, y);
+		this.ctx.lineTo(
+			x - BULLET_LENGTH * bullet.direction.x,
+			y - BULLET_LENGTH * bullet.direction.y);
+		this.ctx.stroke();
+	}, this);
 };
 
 /*
