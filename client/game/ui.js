@@ -285,9 +285,16 @@ Ui.prototype.renderBullets = function(bullets) {
 		var x = bullet.position.x * UI_RENDER_FACTOR;
 		var y = bullet.position.y * UI_RENDER_FACTOR;
 		this.ctx.moveTo(x, y);
-		this.ctx.lineTo(
-			x - BULLET_LENGTH * bullet.direction.x,
-			y - BULLET_LENGTH * bullet.direction.y);
+		var preX, preY;
+		if (dist2(bullet.position, bullet.startPosition) < sq(BULLET_LENGTH / UI_RENDER_FACTOR)) {
+			preX = bullet.startPosition.x * UI_RENDER_FACTOR;
+			preY = bullet.startPosition.y * UI_RENDER_FACTOR;
+		}
+		else {
+			preX = x - BULLET_LENGTH * bullet.direction.x,
+			preY = y - BULLET_LENGTH * bullet.direction.y;
+		}
+		this.ctx.lineTo(preX, preY);
 		this.ctx.stroke();
 	}, this);
 };
@@ -458,7 +465,7 @@ Ui.prototype.pathShadowForUnit = function(base, a, b) {
 
 	a2 = project(base, a);
 	b2 = project(base, b);
-	var as = side(a2, a, base, "a"), bs = side(b2, b, base, "b");
+	var as = side(a2), bs = side(b2);
 
 	ctx.moveTo(a2.x, a2.y);
 	while (as !== bs) {

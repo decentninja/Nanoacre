@@ -175,12 +175,11 @@ Logic.prototype.step = function(state, events) {
 							x: x / dist,
 							y: y / dist,
 						};
-						pos.x += dir.x * TILE_SIZE;
-						pos.y += dir.y * TILE_SIZE;
 						state.nbullets++;
 						state.bullets.push({
 							id: state.nbullets,
 							owning_player: owning_player,
+							startPosition: pos,
 							position: pos,
 							direction: dir
 						});
