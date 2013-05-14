@@ -116,6 +116,7 @@ html, body, .content, .game-container {
 .lobby-line > button {
 	font-size: 20px;
 	padding: 0 17px 0 17px;
+	margin-top: 40px;
 	height: 40px;
 }
 
