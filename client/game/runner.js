@@ -106,7 +106,6 @@ Runner.prototype.start = function() {
 				]
 			}
 		};
-		this.showNonGameOptions(false);
 		this.prepareGame(loadData);
 	}
 	else {
@@ -128,7 +127,6 @@ Runner.prototype.waitForNewGame = function() {
 		}
 		this.socketOnMessageStartup(e);
 	}.bind(this);
-	this.showNonGameOptions(false);
 };
 
 Runner.prototype.requestGame = function(lobby, players) {
