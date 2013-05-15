@@ -77,10 +77,10 @@ func readFieldFromFile(folder, file string) *playfield {
 	tempslice := make([]int, 5, 5)
 	nPlayers := 0
 
-	for i := img.Bounds().Min.X; i < img.Bounds().Max.X; i++ {
+	for i := 0; i < img.Bounds().Max.Y-img.Bounds().Min.Y; i++ {
 		ret[i] = make([]int, img.Bounds().Size().X, img.Bounds().Size().X)
-		for j := img.Bounds().Min.Y; j < img.Bounds().Max.Y; j++ {
-			ret[i][j] = COLOR_MAP[color.RGBAModel.Convert(img.At(i, j))]
+		for j := 0; j < img.Bounds().Max.X-img.Bounds().Min.X; j++ {
+			ret[i][j] = COLOR_MAP[color.RGBAModel.Convert(img.At(j+img.Bounds().Min.X, i+img.Bounds().Min.Y))]
 			playerId := ret[i][j] - FIRST_PLAYER_TILE
 			if playerId > 0 {
 				tempslice[playerId]++
