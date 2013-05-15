@@ -81,6 +81,7 @@ function deepArbitraryCompare(a, b) {
 }
 
 var debug = GetParams["debug"] || 0;
+var remoteLogging = GetParams["log"] || 0;
 
 /*
 	Return square
@@ -111,5 +112,51 @@ function randvector(len) {
 	return {
 		x: len * Math.cos(v),
 		y: len * Math.sin(v)
+	};
+}
+
+/*
+	Log a string to the server (mainly for use when mobile debugging)
+ */
+var log = (function() {
+	if (!remoteLogging)
+		return function() {};
+
+	var tolog = [], isLogging = false;
+	function dolog(msg) {
+		isLogging = true;
+		var req = new XMLHttpRequest();
+		req.open("POST", "/log");
+		req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+		var canceled = false;
+		var retryTimeout = setTimeout(function() {
+			isLogging = false;
+			dolog("Retrying: " + msg);
+			canceled = true;
+		}, 700);
+		req.onreadystatechange = function() {
+			if (req.readyState !== 4 || canceled)
+				return;
+			clearTimeout(retryTimeout);
+			isLogging = false;
+			if (tolog.length > 0) {
+				var m = tolog.shift();
+				dolog(m);
+			}
+		};
+		req.send("msg=" + encodeURIComponent(msg));
+	}
+
+	return function log(msg) {
+		if (isLogging)
+			tolog.push(msg);
+		else
+			dolog(msg);
+	};
+})();
+
+if (remoteLogging) {
+	window.onerror = function(msg, url, lineNo) {
+		log("Uncaught exception: " + msg + " (" + url + ":" + lineNo + ")");
 	};
 }
