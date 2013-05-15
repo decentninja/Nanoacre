@@ -14,6 +14,7 @@ function GameRunner(loadData, socket, canvas, config,
 	this.gameEndedCallback = gameEndedCallback;
 	this.rematchCallback = rematchCallback;
 	this.destroyed = false;
+	this.unlisteners = [];
 }
 
 /*
@@ -83,24 +84,53 @@ GameRunner.prototype.handleResize = function() {
 GameRunner.prototype.registerEventListeners = function() {
 	var that = this;
 	this.keyDownListener = function(ev) {
-		var lineEvent = that.ui.handleKeyDown(ev.keyCode, that.game.getNextFrame());
-		that.addLineEvent(lineEvent);
+		var lineEvents = that.ui.handleKeyDown(ev.keyCode, that.game.getNextFrame());
+		that.addLineEvents(lineEvents);
 	};
 	window.addEventListener("keydown", this.keyDownListener);
 
-	this.mouseDownListener = function(ev) {
+	function getCanvasCoordinatesFromEvent(ev) {
 		// If we use jQuery, this is just (ev.pageX - $(ev).offset().left), etc.
 		var docElem = document.documentElement;
 		var bclr = that.canvas.getBoundingClientRect();
 		var scale = bclr.width / that.canvas.width;
 		var x = ev.pageX - (bclr.left + window.pageXOffset - docElem.clientTop);
 		var y = ev.pageY - (bclr.top + window.pageYOffset - docElem.clientLeft);
-		x = Math.round(x / scale);
-		y = Math.round(y / scale);
-		var lineEvent = that.ui.handleMousedown(x, y, ev.button, that.game.getNextFrame());
-		that.addLineEvent(lineEvent);
+		return {
+		  x: Math.round(x / scale),
+		  y: Math.round(y / scale),
+		};
 	};
-	this.canvas.addEventListener("mousedown", this.mouseDownListener);
+
+	var mouseDownListener = function(ev) {
+		var pos = getCanvasCoordinatesFromEvent(ev);
+		var lineEvents = that.ui.handleMousedown(pos, ev.button, that.game.getNextFrame());
+		that.addLineEvents(lineEvents);
+	};
+	this.canvas.addEventListener("mousedown", mouseDownListener);
+	this.unlisteners.push(function() {
+		that.canvas.removeEventListener("mousedown", mouseDownListener);
+	});
+
+	function makeTouchListener(type, uiListenerName) {
+		var func = function(ev) {
+			for (var i = 0; i < ev.changedTouches.length; ++i) {
+				var t = ev.changedTouches[i];
+				var pos = getCanvasCoordinatesFromEvent(t);
+				var id = t.identifier;
+				var lineEvents = that.ui[uiListenerName](id, pos, that.game.getNextFrame());
+				that.addLineEvents(lineEvents);
+			}
+			ev.preventDefault();
+		};
+		that.canvas.addEventListener(type, func);
+		that.unlisteners.push(function() {
+			that.canvas.removeEventListener(type, func);
+		});
+	}
+	makeTouchListener("touchstart", "handleTouchStart");
+	makeTouchListener("touchend", "handleTouchEnd");
+	makeTouchListener("touchcancel", "handleTouchCancel");
 };
 
 /*
@@ -123,7 +153,9 @@ GameRunner.prototype.startFunc = function(clockAdjustment) {
  */
 GameRunner.prototype.endFunc = function(condition) {
 	// (If the listeners have not yet been registered, this is a no-op.)
-	this.canvas.removeEventListener("mousedown", this.mouseDownListener);
+	this.unlisteners.forEach(function(callback) {
+		callback();
+	});
 	window.removeEventListener("keydown", this.keyDownListener);
 	window.removeEventListener("resize", this.resizeHandler);
 
@@ -191,11 +223,13 @@ GameRunner.prototype.loop = function() {
 /*
 	Sends events to server and pushes them to eventque on this computer.
  */
-GameRunner.prototype.addLineEvent = function(ev) {
-	if (ev) {
+GameRunner.prototype.addLineEvents = function(evs) {
+	if (!evs)
+		return;
+	evs.forEach(function(ev) {
 		this.network.send(ev);
 		this.eventqueue.push(ev);
-	}
+	}, this);
 };
 
 /*

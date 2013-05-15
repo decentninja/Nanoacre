@@ -16,6 +16,9 @@ var DOT_DISTANCE = Math.PI/8;
 var TILE_RENDER_SIZE = 40;
 var UI_RENDER_FACTOR = TILE_RENDER_SIZE / TILE_SIZE;
 
+var TOUCH_FUZZ_SELECT_DISTANCE = 1300;
+var TOUCH_FUZZ_STILL_DISTANCE = 700;
+
 var BULLET_LENGTH = 50;
 var BULLET_WIDTH = UI_RENDER_FACTOR * BULLET_RADIUS;
 
@@ -35,6 +38,7 @@ function Ui(canvas, config, loadData) {
 	this.deadUnits = [];
 	this.ownedUnits = [];
 	this.deadBullets = [];
+	this.touches = [];
 
 	this.particlesystem = new Particlesystem(this.ctx);
 
@@ -59,7 +63,7 @@ Ui.prototype.registerInitialUnits = function(units) {
 			this.ownedUnits.push(unit.id);
 		}
 	}, this);
-	this.selection = this.ownedUnits[0];
+	this.selection = [this.ownedUnits[0]];
 };
 
 /*
@@ -199,6 +203,7 @@ Ui.prototype.render = function(deltatime, state, uiEvents) {
 	// Animated border
 	this.updateBorder(deltatime);
 
+	/*
 	// Shooting on cooldown feedback
 	for (var i = 0; i < state.units.length; i++) {
 		if (this.selection === state.units[i].id) {
@@ -209,6 +214,7 @@ Ui.prototype.render = function(deltatime, state, uiEvents) {
 			}
 		}
 	}
+	*/
 	//this.drawBorder();
 };
 
@@ -219,7 +225,7 @@ Ui.prototype.render = function(deltatime, state, uiEvents) {
 Ui.prototype.renderUnit = function(unit, alive) {
 	var x = unit.position.x * UI_RENDER_FACTOR;
 	var y = unit.position.y * UI_RENDER_FACTOR;
-	var isSelected = (this.selection === unit.id);
+	var isSelected = (this.selection.indexOf(unit.id) !== -1);
 	if (alive) {
 		this.ctx.fillStyle = this.config.colors.teams[unit.owning_player];
 	} else {
@@ -519,19 +525,24 @@ Ui.prototype.drawBorder = function() {
 /*
 	Return fire or move event for timeline
  */
-Ui.prototype.handleMousedown = function(x, y, button, nextFrame) {
+Ui.prototype.handleMousedown = function(pos, button, nextFrame) {
 	var type = this.config.buttons[button];
 	if (type === "fire")
 		this.triedToFireWith = this.selection;
-	return {
-		time: nextFrame,
-		type: type,
-		who: this.selection,
-		towards: {
-			x: (x / UI_RENDER_FACTOR) | 0,
-			y: (y / UI_RENDER_FACTOR) | 0
-		}
+	var ret = [];
+	var realPos = {
+		x: (pos.x / UI_RENDER_FACTOR) | 0,
+		y: (pos.y / UI_RENDER_FACTOR) | 0,
 	};
+	this.selection.forEach(function(uid) {
+		ret.push({
+			time: nextFrame,
+			type: type,
+			who: uid,
+			towards: realPos,
+		});
+	});
+	return ret;
 };
 
 /*
@@ -541,7 +552,114 @@ Ui.prototype.handleKeyDown = function(keycode, nextFrame) {
 	if (keycode >= 49 && keycode <= 57) { //1-9
 		var index = keycode - 49;
 		if (index < this.ownedUnits.length)
-			this.selection = this.ownedUnits[index];
+			this.selection = [this.ownedUnits[index]];
+	}
+	return null;
+};
+
+Ui.prototype.handleTouchStart = function(id, pos, nextFrame) {
+	for (var i = 0; i < this.touches.length; ++i) {
+		if (this.touches[i].id === id) {
+			return null;
+		}
+	}
+
+	// We could perhaps take use of `canvas.getBCR().width / canvas.width`
+	// or `window.devicePixelRatio` here - it needs more testing.
+	var selectRadius = TOUCH_FUZZ_SELECT_DISTANCE;
+
+	var realPos = {
+		x: (pos.x / UI_RENDER_FACTOR) | 0,
+		y: (pos.y / UI_RENDER_FACTOR) | 0,
+	};
+	var selectedUnit = -1, leastDist = Infinity;
+	if (this.lastState) {
+		this.lastState.units.forEach(function(u) {
+			if (u.owning_player !== this.playerId)
+				return;
+			var d = dist(u.position, realPos);
+			if (d < selectRadius && d < leastDist) {
+				leastDist = d;
+				selectedUnit = u.id;
+			}
+		}, this);
+	}
+	if (selectedUnit !== -1) {
+		// Single- or multi-select the given unit depending on whether other
+		// fingers are on screen or not.
+		if (!this.touches.length)
+			this.selection = [selectedUnit];
+		else if (this.selection.indexOf(selectedUnit) === -1)
+			this.selection.push(selectedUnit);
+	}
+	var t = {
+		id: id,
+		pos: realPos,
+		selectedUnit: selectedUnit,
+	};
+	this.touches.push(t);
+	return null;
+};
+
+Ui.prototype.handleTouchEnd = function(id, pos, nextFrame) {
+	var realPos = {
+		x: (pos.x / UI_RENDER_FACTOR) | 0,
+		y: (pos.y / UI_RENDER_FACTOR) | 0,
+	};
+	if (realPos.x < 0 || realPos.x >= this.map.width * TILE_SIZE ||
+	    realPos.y < 0 || realPos.y >= this.map.height * TILE_SIZE)
+	{
+		return this.handleTouchCancel(id, pos, nextFrame);
+	}
+
+	for (var i = 0; i < this.touches.length; ++i) {
+		var t = this.touches[i];
+		if (t.id !== id)
+			continue;
+		this.touches.splice(i, 1);
+		var still = (dist(t.pos, realPos) < TOUCH_FUZZ_STILL_DISTANCE);
+		var didSelect = (t.selectedUnit !== -1);
+		if (still && didSelect) {
+			// Just a selection, nothing more.
+			return null;
+		}
+		else if (still) {
+			// Shoot towards the position.
+			var ret = [];
+			this.selection.forEach(function(uid) {
+				ret.push({
+					time: nextFrame,
+					type: "fire",
+					who: uid,
+					towards: realPos
+				});
+			}, this);
+			return ret;
+		}
+		else if (t.selectedUnit !== -1) {
+			// Move the unit.
+			return [{
+				time: nextFrame,
+				type: "move",
+				who: t.selectedUnit,
+				towards: realPos
+			}];
+		}
+		else {
+			// Mistap?
+			return null;
+		}
+	}
+	return null;
+};
+
+Ui.prototype.handleTouchCancel = function(id, pos, nextFrame) {
+	for (var i = 0; i < this.touches.length; ++i) {
+		var t = this.touches[i];
+		if (t.id !== id) {
+			this.touches.splice(i, 1);
+			break;
+		}
 	}
 	return null;
 };

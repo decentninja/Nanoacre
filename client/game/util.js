@@ -98,6 +98,13 @@ function dist2(a, b) {
 }
 
 /*
+	Distance between points a and b
+ */
+function dist(a, b) {
+	return Math.sqrt(dist2(a, b));
+}
+
+/*
 	Random number between a and b, inclusive
  */
 function randrange(a, b) {
