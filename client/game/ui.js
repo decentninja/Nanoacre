@@ -76,20 +76,6 @@ Ui.prototype.registerInitialUnits = function(units) {
  */
 Ui.prototype.render = function(deltatime, state, uiEvents) {
 	var alsoDrawBullets = [];
-	if (this.lastState) {
-		if (this.triedToFireWith !== null) {
-			for (var i = 0; i < this.lastState.units.length; i++) {
-				var unit = this.lastState.units[i];
-				if (unit.id === this.triedToFireWith) {
-					if (!unit.canFire()) {
-						this.setBorder(this.config.colors.bullet, true);
-					}
-					break;
-				}
-			}
-			this.triedToFireWith = null;
-		}
-	}
 	this.lastState = state;
 
 	uiEvents.forEach(function(ev) {
@@ -199,23 +185,6 @@ Ui.prototype.render = function(deltatime, state, uiEvents) {
 		}
 	}
 	this.ctx.fill();
-
-	// Animated border
-	this.updateBorder(deltatime);
-
-	/*
-	// Shooting on cooldown feedback
-	for (var i = 0; i < state.units.length; i++) {
-		if (this.selection === state.units[i].id) {
-			if (!state.units[i].canFire()) {
-				this.setBorder(this.config.colors.bullet, false);
-			} else {
-				this.clearBorder(this.config.colors.bullet);
-			}
-		}
-	}
-	*/
-	//this.drawBorder();
 };
 
 /*
@@ -481,54 +450,11 @@ Ui.prototype.pathShadowForUnit = function(base, a, b) {
 	ctx.lineTo(a.x, a.y);
 };
 
-Ui.prototype.setBorder = function(borderStyle, force) {
-	if (force || this.borderStyle !== borderStyle || this.borderWidth < BORDER_WIDTH_MID) {
-		this.borderStyle = borderStyle;
-		/*if (this.targetBorderWidth === BORDER_WIDTH_MID && Math.abs(this.borderWidth - this.targetBorderWidth) < BORDER_BREAK_POINT) {
-			this.targetBorderWidth = BORDER_WIDTH_MID;
-			this.borderWidth = BORDER_WIDTH_START;
-		} else {*/
-			this.targetBorderWidth = BORDER_WIDTH_START;
-		//}
-	}
-};
-
-Ui.prototype.clearBorder = function(borderStyle) {
-	if (this.borderStyle === borderStyle)
-		this.targetBorderWidth = 0;
-};
-
-Ui.prototype.updateBorder = function(deltatime) {
-	if (this.borderStyle) {
-		if (Math.abs(this.targetBorderWidth - this.borderWidth) < BORDER_BREAK_POINT)
-			this.borderWidth = this.targetBorderWidth;
-
-		if (this.targetBorderWidth === BORDER_WIDTH_START && this.targetBorderWidth === this.borderWidth)
-			this.targetBorderWidth = BORDER_WIDTH_MID;
-
-		if (this.targetBorderWidth === 0 && this.borderWidth === 0) {
-			this.borderStyle = null;
-			return;
-		}
-		this.borderWidth += BORDER_CHANGE_FACTOR * (this.targetBorderWidth - this.borderWidth);
-	}
-};
-
-Ui.prototype.drawBorder = function() {
-	if (this.borderStyle) {
-		this.ctx.lineWidth = this.borderWidth;
-		this.ctx.strokeStyle = this.borderStyle;
-		this.ctx.strokeRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-	}
-};
-
 /*
 	Return fire or move event for timeline
  */
 Ui.prototype.handleMousedown = function(pos, button, nextFrame) {
 	var type = this.config.buttons[button];
-	if (type === "fire")
-		this.triedToFireWith = this.selection;
 	var ret = [];
 	var realPos = {
 		x: (pos.x / UI_RENDER_FACTOR) | 0,
