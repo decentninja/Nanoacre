@@ -1,10 +1,6 @@
 (function() {
 "use strict";
 
-/*
-	Creates initial state
-	Position of players
- */
 function State(map) {
 	this.nbullets = 0;
 	this.bullets = [];
@@ -25,9 +21,6 @@ function State(map) {
 	}
 }
 
-/*
-	Get alive players
- */
 State.prototype.getRemainingPlayers = function() {
 	var players = [];
 	this.units.forEach(function(unit) {

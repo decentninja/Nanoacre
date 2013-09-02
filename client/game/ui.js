@@ -23,9 +23,6 @@ var UNIT_EXPLOSION_PUSH_AWAY_FACTOR = 4;
 var WALL_EXPLOSION_PUSH_AWAY_FACTOR = -1;
 var WALL_EXPLOSION_DIRECTION_FACTOR = 0.1;
 
-/*
-	Creates new particle system
- */
 function Ui(canvas, config, loadData) {
 	this.ctx = canvas.getContext("2d");
 	this.config = config;
@@ -41,18 +38,12 @@ function Ui(canvas, config, loadData) {
 	this.borderWidth = 0;
 }
 
-/*
-	Sets canvas size
- */
 Ui.prototype.setupCanvas = function() {
 	var canvas = this.ctx.canvas;
 	canvas.width = this.map.width * TILE_RENDER_SIZE;
 	canvas.height = this.map.height * TILE_RENDER_SIZE;
 };
 
-/*
-	Separates unit control
- */
 Ui.prototype.registerInitialUnits = function(units) {
 	units.forEach(function(unit) {
 		if (unit.owning_player === this.playerId) {
@@ -62,14 +53,6 @@ Ui.prototype.registerInitialUnits = function(units) {
 	this.selection = this.ownedUnits[0];
 };
 
-/*
-	Updates last state variable
-	Compares current state with last state
-	Register deadlings and creates explosions
-	Clears canvas
-	Renders bullets, map
-	Calls units, particles and shadows
- */
 Ui.prototype.render = function(deltatime, state, uiEvents) {
 	var alsoDrawBullets = [];
 	if (this.lastState) {
@@ -212,10 +195,6 @@ Ui.prototype.render = function(deltatime, state, uiEvents) {
 	//this.drawBorder();
 };
 
-/*
-	Calculate unit position
-	Renders selection circle, deadness and shooting cooldown
- */
 Ui.prototype.renderUnit = function(unit, alive) {
 	var x = unit.position.x * UI_RENDER_FACTOR;
 	var y = unit.position.y * UI_RENDER_FACTOR;
@@ -307,10 +286,6 @@ Ui.prototype.drawDots = function(x, y, n, radiusFromPlayer, dotRadius) {
 	}
 };
 
-/*
-	Calls shadow logic
-	Renders over shadow mask
- */
 Ui.prototype.renderShadows = function(units) {
 	// When dead, show everything.
 	if (!units.length)
@@ -325,9 +300,6 @@ Ui.prototype.renderShadows = function(units) {
 	this.ctx.restore();
 };
 
-/*
-	Asks if tile blocks line of sight
- */
 Ui.prototype.blocksLOS = function(y, x) {
 	if (y < 0 || y >= this.map.Tiles.length ||
 		x < 0 || x >= this.map.Tiles[0].length) {
@@ -336,9 +308,6 @@ Ui.prototype.blocksLOS = function(y, x) {
 	return (this.map.Tiles[y][x] === 1);
 };
 
-/*
-	Clips the canvas to the shadows for the current unit
- */
 Ui.prototype.clipShadowsForUnit = function(unit) {
 	var unitpos = {
 		x: unit.position.x * UI_RENDER_FACTOR,
@@ -402,9 +371,6 @@ Ui.prototype.clipShadowsForUnit = function(unit) {
 	this.ctx.clip();
 };
 
-/*
-	Draw path for a shadow polygon
- */
 Ui.prototype.pathShadowForUnit = function(base, a, b) {
 	if (dist2(base, a) < 1e-5 || dist2(base, b) < 1e-5)
 		return;
@@ -516,9 +482,6 @@ Ui.prototype.drawBorder = function() {
 	}
 };
 
-/*
-	Return fire or move event for timeline
- */
 Ui.prototype.handleMousedown = function(x, y, button, nextFrame) {
 	var type = this.config.buttons[button];
 	if (type === "fire")
@@ -534,9 +497,6 @@ Ui.prototype.handleMousedown = function(x, y, button, nextFrame) {
 	};
 };
 
-/*
-	Change unit selection
- */
 Ui.prototype.handleKeyDown = function(keycode, nextFrame) {
 	if (keycode >= 49 && keycode <= 57) { //1-9
 		var index = keycode - 49;

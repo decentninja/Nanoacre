@@ -16,10 +16,6 @@ Network.prototype.takeOverSocket = function() {
 	this.websocket.onerror = this.onerror.bind(this);
 };
 
-/*
-	Sends data to server
-	JSON formating
- */
 Network.prototype.send = function(message) {
 	if (typeof message == "string") {
 		this.websocket.send(message);
@@ -28,9 +24,6 @@ Network.prototype.send = function(message) {
 	}
 };
 
-/*
-	Sends ready to server
- */
 Network.prototype.ready = function(startFunction, endFunction, rematchFunc) {
 	this.startFunc = startFunction;
 	this.endGameFunc = endFunction;
@@ -41,9 +34,6 @@ Network.prototype.ready = function(startFunction, endFunction, rematchFunc) {
 
 Network.prototype.onopen = function(e) {};
 
-/*
-	Handles messages from server
- */
 Network.prototype.onmessage = function(e) {
 	var message = e.data;
 	switch (message) {
@@ -75,9 +65,6 @@ Network.prototype.onclose = function(e) {};
 
 Network.prototype.onerror = function(e) {};
 
-/*
-	Calculates latency time by measuring time since last ping.
- */
 Network.prototype.gotPing = function() {
 	var now = performance.now();
 	var done = (this.latency.length + 1 >= PONG_COUNT);
@@ -102,9 +89,6 @@ Network.prototype.gotPing = function() {
 	}
 };
 
-/*
-	Debug with fake network
- */
 window.MockNetwork = function() {
 	this.takeOverSocket = this.send = function() {};
 	this.ready = function(callback) {
