@@ -232,20 +232,6 @@ Ui.prototype.renderUnit = function(unit, alive) {
 };
 
 /*
-	Precompute player dot location
- */
-Ui.prototype.precomputeDots = function(maxN) {
-	this.dots = new Array(maxN);
-	for (var i = 0; i <= maxN; i++) {
-		this.dots[i] = new Array(i);
-		var firstAngle = -Math.PI/2 - (i - 1)*DOT_DISTANCE/2;
-		for (var j = 0; j < i; j++) {
-			this.dots[i][j] = [Math.cos(firstAngle + j * DOT_DISTANCE), Math.sin(firstAngle + j * DOT_DISTANCE)];
-		}
-	}
-};
-
-/*
    Draw an array of bullets to the canvas
  */
 Ui.prototype.renderBullets = function(bullets) {
@@ -274,13 +260,11 @@ Ui.prototype.renderBullets = function(bullets) {
 	Part of renderUnit
  */
 Ui.prototype.drawDots = function(x, y, n, radiusFromPlayer, dotRadius) {
-	if (!this.dots || n >= this.dots.length)
-		this.precomputeDots(Math.max(5, n));
-
-	for (var i = 0; i < this.dots[n].length; i++) {
+	for (var i = 0; i < n; i++) {
+		var angle = -Math.PI/2 - (n - 1 - i*2)*DOT_DISTANCE/2;
 		this.ctx.beginPath();
-		this.ctx.arc(x + radiusFromPlayer * this.dots[n][i][0],
-		             y + radiusFromPlayer * this.dots[n][i][1],
+		this.ctx.arc(x + radiusFromPlayer * Math.cos(angle),
+		             y + radiusFromPlayer * Math.sin(angle),
 		             dotRadius, 0, Math.PI*2, false);
 		this.ctx.fill();
 	}
