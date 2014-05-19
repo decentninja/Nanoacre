@@ -162,10 +162,13 @@ Ui.prototype.render = function(deltatime, state, uiEvents) {
 	this.particlesystem.render();
 
 	// Shadows
-	var shadowsFor = state.units.filter(function(unit) {
+	var ownedUnits = state.units.filter(function(unit) {
 		return (unit.owning_player === this.playerId);
-	}.bind(this));
-	this.renderShadows(shadowsFor);
+	}, this);
+	var nonOwnedUnits = state.units.filter(function(unit) {
+		return (unit.owning_player !== this.playerId);
+	}, this)
+	this.renderShadows(ownedUnits, nonOwnedUnits);
 
 	// Map
 	this.ctx.fillStyle = this.config.colors.map;
@@ -270,14 +273,14 @@ Ui.prototype.drawDots = function(x, y, n, radiusFromPlayer, dotRadius) {
 	}
 };
 
-Ui.prototype.renderShadows = function(units) {
+Ui.prototype.renderShadows = function(units, shadingUnits) {
 	// When dead, show everything.
 	if (!units.length)
 		return;
 
 	this.ctx.save();
 	for (var i = 0; i < units.length; ++i) {
-		this.clipShadowsForUnit(units[i]);
+		this.clipShadowsForUnit(units[i], shadingUnits);
 	}
 	this.ctx.fillStyle = this.config.colors.shadow;
 	this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
@@ -292,7 +295,7 @@ Ui.prototype.blocksLOS = function(y, x) {
 	return (this.map.Tiles[y][x] === 1);
 };
 
-Ui.prototype.clipShadowsForUnit = function(unit) {
+Ui.prototype.clipShadowsForUnit = function(unit, shadingUnits) {
 	var unitpos = {
 		x: unit.position.x * UI_RENDER_FACTOR,
 		y: unit.position.y * UI_RENDER_FACTOR
@@ -350,12 +353,26 @@ Ui.prototype.clipShadowsForUnit = function(unit) {
 			}
 		}
 	}
+
+	shadingUnits.forEach(function(shadingUnit) {
+		var shadepos = {
+			x: shadingUnit.position.x * UI_RENDER_FACTOR,
+			y: shadingUnit.position.y * UI_RENDER_FACTOR
+		};
+		var vec = {x: unitpos.y - shadepos.y, y: shadepos.x - unitpos.x};
+		var len = Math.sqrt(sq(vec.x) + sq(vec.y));
+		vec = {x: vec.x / len * PLAYER_RADIUS * UI_RENDER_FACTOR, y: vec.y / len * PLAYER_RADIUS * UI_RENDER_FACTOR};
+		var a = {x: shadepos.x + vec.x, y: shadepos.y + vec.y};
+		var b = {x: shadepos.x - vec.x, y: shadepos.y - vec.y};
+		this.pathShadowForUnit(unitpos, a, b, shadepos);
+	}, this);
+
 	this.ctx.moveTo(0, 0);
 
 	this.ctx.clip();
 };
 
-Ui.prototype.pathShadowForUnit = function(base, a, b) {
+Ui.prototype.pathShadowForUnit = function(base, a, b, arcCenter) {
 	if (dist2(base, a) < 1e-5 || dist2(base, b) < 1e-5)
 		return;
 
@@ -422,7 +439,12 @@ Ui.prototype.pathShadowForUnit = function(base, a, b) {
 
 	ctx.lineTo(b2.x, b2.y);
 	ctx.lineTo(b.x, b.y);
-	ctx.lineTo(a.x, a.y);
+	if (arcCenter) {
+		var angle = Math.atan2(arcCenter.y - a.y, arcCenter.x - a.x);
+		ctx.arc(arcCenter.x, arcCenter.y, PLAYER_RADIUS * UI_RENDER_FACTOR, angle, angle + Math.PI, false);
+	} else {
+		ctx.lineTo(a.x, a.y);
+	}
 };
 
 Ui.prototype.setBorder = function(borderStyle, force) {
