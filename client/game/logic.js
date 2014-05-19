@@ -12,32 +12,19 @@ var BULLET_SPEED = 175;
 
 var PLAYER_SPEED = 50;
 
-/*
-	Sets up pathfinding
- */
 window.Logic = function(map) {
 	this.map = map;
 	this.setupPathfinding();
 };
 
-/*
-	Destructor. The pathfinding stuff will leak memory if not called.
- */
 Logic.prototype.destroy = function() {
 	this.clearPathfinding();
 };
 
-/*
-	Create the initial state for the map
- */
 Logic.prototype.initialState = function() {
 	return new State(this.map);
 };
 
-/*
-	Run a function for each wall tile. Returns true if any invocation returned
-	true, else false.
- */
 Logic.prototype.eachWallTile = function(callback) {
 	var map = this.map, ph = map.height, pw = map.width;
 	for (var i = 0; i < ph; ++i) {
@@ -51,9 +38,6 @@ Logic.prototype.eachWallTile = function(callback) {
 	return false;
 };
 
-/*
-	Moves waypoint if inside wall
- */
 Logic.prototype.moveOutFromWalls = function(pos) {
 	pos = deepCopy(pos);
 	function min2(a, b) {
@@ -105,9 +89,6 @@ Logic.prototype.moveOutFromWalls = function(pos) {
 	return pos;
 };
 
-/*
-	Update unit position
- */
 Logic.prototype.moveUnit = function(u) {
 	var dirs = ['x', 'y'];
 	if (!u.path)
@@ -140,10 +121,6 @@ Logic.prototype.moveUnit = function(u) {
 	u.position = npos;
 };
 
-/*
-	Move the game state forward one frame, handling things like unit/bullet
-	movements, shooting, collisions, etc.
- */
 Logic.prototype.step = function(state, events, addUIEvent) {
 	var map = this.map, self = this;
 	state = deepCopy(state);
@@ -253,9 +230,6 @@ Logic.prototype.step = function(state, events, addUIEvent) {
 
 /* === Path finding; talks to compiled code. Beware of dragons. === */
 
-/*
-	Pushes data to stack for C++ path finding code
- */
 Logic.prototype.pathfindingComputePointsAndRects = function(points, rects) {
 	var map = this.map;
 	var ph = map.Tiles.length, pw = map.Tiles[0].length;
@@ -300,9 +274,6 @@ function pushArrayToStack(obj) {
 	return mem;
 }
 
-/*
-	The shit
- */
 Logic.prototype.pathfind = function(from, to) {
 	var startStack = Runtime.stackSave();
 	try {
@@ -334,9 +305,6 @@ Logic.prototype.pathfind = function(from, to) {
 	}
 };
 
-/*
-	Runs initial pathfinding code
- */
 Logic.prototype.setupPathfinding = function() {
 	var points = [], rects = [];
 	this.pathfindingComputePointsAndRects(points, rects);
@@ -366,9 +334,6 @@ Logic.prototype.setupPathfinding = function() {
 	this.ptrMap = ptrMap;
 };
 
-/*
-	C++ cleanup
- */
 Logic.prototype.clearPathfinding = function() {
 	Module.ccall('clear_pathfinding',
 		'number',

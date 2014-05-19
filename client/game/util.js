@@ -1,8 +1,5 @@
 "use strict";
 
-/*
-	Create deep copy of object
- */
 function deepCopy(obj) {
 	if (typeof obj !== "object" || obj === null)
 		return obj;
@@ -14,9 +11,6 @@ function deepCopy(obj) {
 	return ret;
 }
 
-/*
-	request / cancel animation frame poly fill
- */
 window.requestAnimationFrame =
 	window.requestAnimationFrame ||
 	window.mozRequestAnimationFrame ||
@@ -29,9 +23,6 @@ window.cancelAnimationFrame =
 	window.webkitCancelRequestAnimationFrame ||
 	window.mozCancelAnimationFrame;
 
-/*
-	Parse url get parameters
- */
 var GetParams = (function(searchstr) {
 	if (searchstr.charAt(0) == "?")
 		searchstr = searchstr.substr(1);
@@ -82,30 +73,18 @@ function deepArbitraryCompare(a, b) {
 
 var debug = GetParams["debug"] || 0;
 
-/*
-	Return square
- */
 function sq(x) {
 	return x*x;
 }
 
-/*
-	Square distance between points a and b
- */
 function dist2(a, b) {
 	return sq(a.x - b.x) + sq(a.y - b.y);
 }
 
-/*
-	Random number between a and b, inclusive
- */
 function randrange(a, b) {
 	return Math.random() * (b - a) + a;
 }
 
-/*
-	Random vector with length len
- */
 function randvector(len) {
 	var v = 2 * Math.PI * Math.random();
 	return {

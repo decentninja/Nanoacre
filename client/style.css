@@ -37,6 +37,7 @@ body {
 }
 
 input[type=button], button {
+	color: #090909;
 	background-color: #208BB5;
 	border: none;
 	height: 25px;

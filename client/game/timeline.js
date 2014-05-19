@@ -16,24 +16,15 @@ function Timeline(map) {
 	this.states[0] = this.logic.initialState();
 }
 
-/*
-	Run logics C++ destructor
- */
 Timeline.prototype.destroy = function() {
 	this.logic.destroy();
 };
 
-/*
-	Moves time forward one step
- */
 Timeline.prototype.step = function() {
 	this._progress(this.curTime);
 	this.curTime++;
 };
 
-/*
-	Simulates one step, prevT -> prevT + 1
- */
 Timeline.prototype._progress = function(prevT) {
 	var addUIEvent = function(ev) {
 		ev.time = prevT + 1;
@@ -45,10 +36,6 @@ Timeline.prototype._progress = function(prevT) {
 		addUIEvent);
 };
 
-/*
-	Inserts event into timeline
-	Reruns simulation of steps after the event
- */
 Timeline.prototype.insert = function(event) {
 	var time = event.time;
 	if (time <= 0) {
@@ -101,9 +88,6 @@ Timeline.prototype.getCurrentState = function() {
 	return this.states[this.curTime & MASK];
 };
 
-/*
-	Get current frame index
- */
 Timeline.prototype.getNextFrame = function() {
 	return this.curTime + 1;
 };

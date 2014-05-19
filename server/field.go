@@ -1,13 +1,14 @@
 package server
 
 import (
-	"bufio"
 	"fmt"
+	"image"
+	"image/color"
 	"log"
 	"os"
 	"path/filepath"
-	"regexp"
-	"strconv"
+
+	_ "image/png"
 )
 
 type playfield struct {
@@ -19,6 +20,20 @@ type playfield struct {
 const (
 	FIRST_PLAYER_TILE = 100
 )
+
+var (
+	COLOR_MAP = map[color.Color]int{
+		color.RGBA{0, 0, 0, 255}:       0,
+		color.RGBA{255, 255, 255, 255}: 1,
+		color.RGBA{50, 0, 0, 255}:      100,
+		color.RGBA{100, 0, 0, 255}:     101,
+		color.RGBA{150, 0, 0, 255}:     102,
+		color.RGBA{200, 0, 0, 255}:     103,
+		color.RGBA{250, 0, 0, 255}:     104,
+	}
+)
+
+var ()
 
 func readFieldsFromFolder(folder string) map[int][]*playfield {
 	fo, err := os.Open(folder)
@@ -55,23 +70,18 @@ func readFieldFromFile(folder, file string) *playfield {
 	d(err)
 	defer fi.Close()
 
-	reader := bufio.NewReader(fi)
-	tile := regexp.MustCompile(`(\d+)`)
+	img, _, err := image.Decode(fi)
+	d(err)
 
-	ret := make([][]int, 0, 256)
-
-	tempslice := make([]int, 24)
+	ret := make([][]int, img.Bounds().Size().Y, img.Bounds().Size().Y)
+	tempslice := make([]int, 5, 5)
 	nPlayers := 0
-	var line string
-	for err == nil {
-		line, err = reader.ReadString('\n')
 
-		match := tile.FindAllStringSubmatch(line, -1)
-		row := make([]int, len(match))
-		for i, m := range match {
-			num, _ := strconv.Atoi(m[1])
-			row[i] = num
-			playerId := num - FIRST_PLAYER_TILE
+	for i := 0; i < img.Bounds().Max.Y-img.Bounds().Min.Y; i++ {
+		ret[i] = make([]int, img.Bounds().Size().X, img.Bounds().Size().X)
+		for j := 0; j < img.Bounds().Max.X-img.Bounds().Min.X; j++ {
+			ret[i][j] = COLOR_MAP[color.RGBAModel.Convert(img.At(j+img.Bounds().Min.X, i+img.Bounds().Min.Y))]
+			playerId := ret[i][j] - FIRST_PLAYER_TILE
 			if playerId > 0 {
 				tempslice[playerId]++
 			}
@@ -79,11 +89,6 @@ func readFieldFromFile(folder, file string) *playfield {
 				nPlayers = playerId + 1
 			}
 		}
-		ret = append(ret, row)
-	}
-
-	if len(ret[0]) == 0 {
-		log.Fatalf("Couldn't load map \"%s\", possibly an error: %s\n", file, err)
 	}
 
 	return &playfield{

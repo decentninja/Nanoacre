@@ -14,9 +14,6 @@ function Particle(x, y, dx, dy, style, burntime) {
 	this.style = style;
 }
 
-/*
-	Moves particle
- */
 Particle.prototype.update = function(deltatime) {
 	this.timeleft -= deltatime;
 	this.x += this.dx;
@@ -25,9 +22,6 @@ Particle.prototype.update = function(deltatime) {
 	this.dy *= DRAFT;
 };
 
-/*
-	Renders particle
- */
 Particle.prototype.render = function(ctx) {
 	ctx.fillStyle = this.style;
 	ctx.globalAlpha = Math.abs(this.timeleft / this.burntime);
@@ -41,10 +35,6 @@ function Particlesystem(ctx) {
 	this.particles = []; // May need one array for each fillstyle, time bla
 }
 
-/*
-	Updates particles
-	Removes old particles
- */
 Particlesystem.prototype.update = function(deltatime) {
 	this.particles = this.particles.filter(function(particle) {
 		if(particle.timeleft < 0) {
@@ -55,10 +45,6 @@ Particlesystem.prototype.update = function(deltatime) {
 	});
 };
 
-/*
-	Renders all particles
-	Resets alpha value
- */
 Particlesystem.prototype.render = function() {
 	var ctx = this.ctx;
 	this.particles.forEach(function(particle) {
@@ -67,10 +53,6 @@ Particlesystem.prototype.render = function() {
 	ctx.globalAlpha = 1;
 };
 
-/*
-	Creates a particle
-	Limits particle count
- */
 Particlesystem.prototype.add = function(x, y, dx, dy, style, burntime) {
 	this.particles.push(new Particle(x, y, dx, dy, style, burntime));
 	while (this.particles.length > MAX_COUNT) {
@@ -78,9 +60,6 @@ Particlesystem.prototype.add = function(x, y, dx, dy, style, burntime) {
 	}
 };
 
-/*
-	Creates explotion
- */
 Particlesystem.prototype.explosion = function(x, y, style, away, pushAwayFactor) {
 	for (var i = 0; i < 100; i++) {
 		var dir = randvector(randrange(0, 2));
