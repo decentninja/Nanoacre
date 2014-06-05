@@ -6,7 +6,7 @@ Nanoacre is a fast multiplayer strategy game written in javascript and golang. T
 There are a bug in Firefox when you press the rematch button... We know.
 
 ## History
-The game originated as a school project KTH, the Swedish Royal Institute of Technology (a University) and has taken of from there. 
+The game originated as a school project at KTH, the Swedish Royal Institute of Technology (a University) and has taken of from there. 
 
 ## Mapmaking
 Maps are images using a specialized palette (supplied in the .gpl or .pxpalette files).
