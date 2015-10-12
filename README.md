@@ -1,7 +1,7 @@
 Nanoacre
 ========
 
-Nanoacre is a fast multiplayer strategy game written in javascript and golang. Try it out at: [nanoacre.sootn.se](http://nanoacre.sootn.se), you will need a friend and both of you need to press the random game button. If more players want to join in, create a custom lobby, enter the amount of players and share the link browser link between the players. GLHF
+Nanoacre is a fast multiplayer strategy game written in javascript and golang. Try it out at: [nanoacre.decent.ninja](http://nanoacre.decent.ninja), you will need a friend and both of you need to press the random game button. If more players want to join in, create a custom lobby, enter the amount of players and share the link browser link between the players. GLHF
 
 ## History
 The game originated as a school project at KTH, the Swedish Royal Institute of Technology (a University) and has taken of from there. 
