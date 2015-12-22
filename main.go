@@ -1,7 +1,7 @@
 package main
 
 import (
-	server "./server"
+	"./server"
 	"log"
 	"net/http"
 	"os"
