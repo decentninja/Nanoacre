@@ -1,2 +1,5 @@
-FROM golang:1.5-onbuild
+FROM debian:latest
 EXPOSE 9000
+COPY . .
+CMD ./Nanoacre
+
